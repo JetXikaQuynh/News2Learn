@@ -20,12 +20,12 @@ class RssService {
 
       return items.map((item) {
         return Article(
-          articleId: DateTime.now().millisecondsSinceEpoch.toString(),
+          articleId: item.guid ?? item.link ?? DateTime.now().toString(),
           title: item.title ?? "",
           description: _cleanHtml(item.description ?? ""),
           content: item.content?.value ?? "",
           link: item.link ?? "",
-          imageUrl: "", // RSS CNN không có sẵn ảnh
+          imageUrl: _getImage(item),
           category: (item.categories != null && item.categories!.isNotEmpty)
               ? item.categories!.first.toString()
               : "",
@@ -37,6 +37,21 @@ class RssService {
       print("RSS ERROR: $e");
       return [];
     }
+  }
+
+  // 🔧 Lấy ảnh từ RSS item
+  String _getImage(RssItem item) {
+    // 🔹 1. media:thumbnail (BBC hay dùng)
+    if (item.media?.thumbnails != null && item.media!.thumbnails!.isNotEmpty) {
+      return item.media!.thumbnails!.first.url ?? "";
+    }
+
+    // 🔹 2. enclosure
+    if (item.enclosure != null) {
+      return item.enclosure!.url ?? "";
+    }
+
+    return "";
   }
 
   // 🔧 Xóa HTML tag trong description

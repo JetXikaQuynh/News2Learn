@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
-
+import 'models/bookmark_model.dart';
 import 'models/vocab_model.dart';
 import 'features/articles/providers/article_provider.dart';
 import 'features/articles/screens/article_list_screen.dart';
@@ -11,6 +11,8 @@ void main() async {
 
   await Hive.initFlutter();
 
+  Hive.registerAdapter(BookmarkModelAdapter());
+  await Hive.openBox<BookmarkModel>('bookmarkBox');
   Hive.registerAdapter(VocabModelAdapter());
   await Hive.openBox<VocabModel>('vocabBox');
 
