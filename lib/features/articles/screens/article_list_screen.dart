@@ -64,13 +64,13 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Image.asset("assets/LOGO1.png", height: 100),
+                  Image.asset("assets/LOGO1.png", height: 80),
 
                   // 👤 PROFILE
                   Row(
                     children: [
                       const CircleAvatar(
-                        radius: 24,
+                        radius: 20,
                         backgroundColor: Colors.blue,
                         child: Icon(Icons.person, color: Colors.white),
                       ),
@@ -116,24 +116,31 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: categories
-                        .map(
-                          (e) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.blue,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              e,
-                              style: const TextStyle(color: Colors.white),
-                            ),
+                    children: categories.asMap().entries.map((entry) {
+                      int idx = entry.key;
+                      String label = entry.value;
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          // Đổi màu để làm nổi bật category đang chọn (giả định dùng tạm biến cục bộ)
+                          color: idx == 0 ? Colors.blue : Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue.shade100),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: idx == 0 ? Colors.white : Colors.blue,
+                            fontWeight: idx == 0
+                                ? FontWeight.bold
+                                : FontWeight.normal,
                           ),
-                        )
-                        .toList(),
+                        ),
+                      );
+                    }).toList(),
                   ),
 
                   const SizedBox(height: 20),
@@ -146,9 +153,9 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisSpacing: 16,
-                          crossAxisSpacing: 16,
-                          childAspectRatio: 0.9,
+                          mainAxisSpacing: 10,
+                          crossAxisSpacing: 10,
+                          childAspectRatio: 0.65,
                         ),
                     itemBuilder: (context, index) {
                       return ArticleCard(article: provider.articles[index]);

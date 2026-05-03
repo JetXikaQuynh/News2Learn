@@ -64,9 +64,9 @@ class BookmarkScreen extends StatelessWidget {
                             gridDelegate:
                                 const SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: 2,
-                                  mainAxisSpacing: 16,
-                                  crossAxisSpacing: 16,
-                                  childAspectRatio: 0.9,
+                                  mainAxisSpacing: 10,
+                                  crossAxisSpacing: 10,
+                                  childAspectRatio: 0.65,
                                 ),
                             itemBuilder: (context, index) {
                               return ArticleCard(

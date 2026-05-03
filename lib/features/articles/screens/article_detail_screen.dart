@@ -1,142 +1,168 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../models/article_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import '../../../models/vocab_model.dart';
 
-class ArticleDetailScreen extends StatelessWidget {
+import '../../../models/article_model.dart';
+import '../../../models/vocab_model.dart';
+import '../../../services/rss_service.dart';
+
+class ArticleDetailScreen extends StatefulWidget {
   final Article article;
 
   const ArticleDetailScreen({super.key, required this.article});
 
   @override
+  State<ArticleDetailScreen> createState() => _ArticleDetailScreenState();
+}
+
+class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
+  String fullContent = "";
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFullContent();
+  }
+
+  Future<void> _loadFullContent() async {
+    final content = await RssService().fetchFullContent(widget.article.link);
+
+    setState(() {
+      fullContent = content;
+      isLoading = false;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final displayText = fullContent.isNotEmpty
+        ? fullContent
+        : widget.article.description;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 🔥 IMAGE + BACK
-              Stack(
-                children: [
-                  article.imageUrl.isNotEmpty
-                      ? Image.network(
-                          article.imageUrl,
-                          height: 220,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(height: 220, color: Colors.grey[300]),
-
-                  Positioned(
-                    top: 16,
-                    left: 16,
-                    child: GestureDetector(
-                      onTap: () => Navigator.pop(context),
-                      child: const CircleAvatar(
-                        backgroundColor: Colors.black54,
-                        child: Icon(Icons.arrow_back, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // 📄 CONTENT
-              Padding(
-                padding: const EdgeInsets.all(16),
+        child: isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 📰 TITLE
-                    Text(
-                      article.title,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    // 🔥 IMAGE + BACK
+                    Stack(
+                      children: [
+                        widget.article.imageUrl.isNotEmpty
+                            ? Image.network(
+                                widget.article.imageUrl,
+                                height: 220,
+                                width: double.infinity,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(height: 220, color: Colors.grey[300]),
 
-                    const SizedBox(height: 8),
-
-                    // 🕒 DATE
-                    Text(
-                      DateFormat('MMM dd, yyyy').format(article.pubDate),
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // 💡 TIP
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 255, 248, 185),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: const Color.fromARGB(255, 255, 217, 159),
-                        ),
-                      ),
-                      child: const Text(
-                        "💡 Mẹo: Hãy nhấn vào từ để tra nghĩa và lưu từ đó vào danh sách từ vựng",
-                        style: TextStyle(fontSize: 13),
-                      ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // 📖 CONTENT (CLICK WORD)
-                    _buildContent(context),
-
-                    const SizedBox(height: 20),
-
-                    // 🤖 BUTTON
-                    Center(
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        child: const Text(
-                          "⭐ Generate AI Summary",
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            79,
-                            142,
-                            252,
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                        Positioned(
+                          top: 16,
+                          left: 16,
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const CircleAvatar(
+                              backgroundColor: Colors.black54,
+                              child: Icon(
+                                Icons.arrow_back,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ),
+                      ],
+                    ),
+
+                    // 📄 CONTENT
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 📰 TITLE
+                          Text(
+                            widget.article.title,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          // 🕒 DATE
+                          Text(
+                            DateFormat(
+                              'MMM dd, yyyy',
+                            ).format(widget.article.pubDate),
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // 💡 TIP
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFFFF8B9),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFFFD99F),
+                              ),
+                            ),
+                            child: const Text(
+                              "💡 Mẹo: Hãy nhấn vào từ để tra nghĩa và lưu từ đó vào danh sách từ vựng",
+                              style: TextStyle(fontSize: 13),
+                            ),
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          // 📖 CONTENT
+                          _buildContent(context, displayText),
+
+                          const SizedBox(height: 20),
+
+                          // 🤖 BUTTON
+                          Center(
+                            child: ElevatedButton(
+                              onPressed: () {},
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF4F8EFC),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              child: const Text(
+                                "⭐ Generate AI Summary",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-        ),
       ),
     );
   }
 
-  // 🔥 CLICK WORD → SHOW POPUP
-  Widget _buildContent(BuildContext context) {
-    final text = article.content.isNotEmpty
-        ? article.content
-        : article.description;
-
+  // 🔥 CONTENT + HIGHLIGHT WORD
+  Widget _buildContent(BuildContext context, String text) {
     final words = text.split(" ");
 
     final vocabBox = Hive.box<VocabModel>('vocabBox');
-
     final savedWords = vocabBox.values.map((e) => e.word.toLowerCase()).toSet();
 
     return Wrap(
@@ -214,7 +240,6 @@ class ArticleDetailScreen extends StatelessWidget {
 
               const Spacer(),
 
-              // BUTTON
               ElevatedButton(
                 onPressed: () {},
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
