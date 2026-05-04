@@ -17,19 +17,34 @@ class VocabModelAdapter extends TypeAdapter<VocabModel> {
       for (int i = 0; i < numOfFields; i++) reader.readByte(): reader.read(),
     };
     return VocabModel(
-      word: fields[0] as String,
-      meaning: fields[1] as String,
+      vocabId: fields[0] as String,
+      word: fields[1] as String,
+      meaningVi: fields[2] as String,
+      phonetic: fields[3] as String,
+      example: fields[4] as String,
+      pronunciation: fields[5] as String?,
+      partOfSpeech: fields[6] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, VocabModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(7)
       ..writeByte(0)
-      ..write(obj.word)
+      ..write(obj.vocabId)
       ..writeByte(1)
-      ..write(obj.meaning);
+      ..write(obj.word)
+      ..writeByte(2)
+      ..write(obj.meaningVi)
+      ..writeByte(3)
+      ..write(obj.phonetic)
+      ..writeByte(4)
+      ..write(obj.example)
+      ..writeByte(5)
+      ..write(obj.pronunciation)
+      ..writeByte(6)
+      ..write(obj.partOfSpeech);
   }
 
   @override

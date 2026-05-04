@@ -5,6 +5,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../models/article_model.dart';
 import '../../../models/vocab_model.dart';
 import '../../../services/rss_service.dart';
+import 'package:audioplayers/audioplayers.dart';
+import '../../../services/dictionary_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class ArticleDetailScreen extends StatefulWidget {
   final Article article;
@@ -16,6 +20,7 @@ class ArticleDetailScreen extends StatefulWidget {
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
+  OverlayEntry? _overlayEntry;
   String fullContent = "";
   bool isLoading = true;
 
@@ -200,50 +205,218 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
   }
 
   // 📚 POPUP TỪ VỰNG
-  void _showVocabPopup(BuildContext context, String word) {
+  void _showVocabPopup(BuildContext context, String word) async {
+    final box = Hive.box<VocabModel>('vocabBox');
+
+    // Popup loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    final data = await DictionaryService().fetchWord(word);
+    Navigator.pop(context); // Đóng loading
+
+    if (data == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Không tìm thấy thông tin từ vựng")),
+      );
+      return;
+    }
+
+    final isSaved = box.values.any(
+      (e) => e.word.toLowerCase() == word.toLowerCase(),
+    );
+
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent, // Để thấy bo góc của Container
       builder: (_) {
         return Container(
-          padding: const EdgeInsets.all(16),
-          height: 280,
+          margin: const EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // HEADER
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    word,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+              // --- HEADER MÀU CAM ---
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.deepOrangeAccent,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      word.toLowerCase(),
+                      style: const TextStyle(
+                        fontSize: 22,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.volume_up),
-                ],
+                    IconButton(
+                      icon: const Icon(Icons.volume_up, color: Colors.white),
+                      onPressed: () async {
+                        if (data["audio"] != null) {
+                          final player = AudioPlayer();
+                          await player.play(UrlSource(data["audio"]));
+                        }
+                      },
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                ),
               ),
 
-              const SizedBox(height: 10),
+              // --- NỘI DUNG NGHĨA ---
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data["phonetic"] ?? "",
+                      style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                    ),
+                    const SizedBox(height: 15),
 
-              const Text("/bəˈfɔː/"),
+                    // Hiển thị danh sách các loại từ và nghĩa
+                    ...(data["meanings"] as List).map((m) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${m['pos'] == 'noun'
+                                  ? 'Danh từ'
+                                  : m['pos'] == 'verb'
+                                  ? 'Động từ'
+                                  : m['pos']} (${m['pos'].toString().substring(0, 1)}):",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            Text(
+                              "1. ${m['meaning']}",
+                              style: const TextStyle(fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
 
-              const SizedBox(height: 10),
+                    const Divider(height: 30),
+                    //NÚT LƯU / XÓA
+                    Center(
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            if (isSaved) {
+                              // --- LOGIC XÓA TỪ ---
+                              // Tìm key của từ đó trong Hive box để xóa chính xác
+                              final Map<dynamic, VocabModel> vocabMap = box
+                                  .toMap();
+                              dynamic keyToDelete;
 
-              const Text(
-                "Danh từ (n):\n1. Nghĩa ví dụ...\n\nĐộng từ (v):\n1. Nghĩa ví dụ...",
-              ),
+                              vocabMap.forEach((key, value) {
+                                if (value.word.toLowerCase() ==
+                                    word.toLowerCase()) {
+                                  keyToDelete = key;
+                                }
+                              });
 
-              const Spacer(),
+                              if (keyToDelete != null) {
+                                await box.delete(keyToDelete);
 
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-                child: const Text("+ Lưu vào Từ vựng"),
+                                // Thông báo cho người dùng
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Đã xóa từ '$word' khỏi từ vựng",
+                                      ),
+                                      duration: const Duration(seconds: 2),
+                                    ),
+                                  );
+                                  Navigator.pop(
+                                    context,
+                                  ); // Đóng popup sau khi xóa
+                                }
+                              }
+                            } else {
+                              // --- LOGIC LƯU TỪ ---
+                              await box.add(
+                                VocabModel(
+                                  vocabId: DateTime.now().toString(),
+                                  word: word,
+                                  meaningVi:
+                                      data["meanings"][0]["meaning"] ?? "",
+                                  phonetic: data["phonetic"] ?? "",
+                                  example: "",
+                                  pronunciation: data["audio"],
+                                  partOfSpeech:
+                                      data["meanings"][0]["pos"] ?? "unknown",
+                                ),
+                              );
+
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Đã lưu từ '$word'")),
+                                );
+                                Navigator.pop(context);
+                              }
+                            }
+                            // Cập nhật lại giao diện màn hình chính để mất/hiện highlight
+                            setState(() {});
+                          },
+                          icon: Icon(
+                            isSaved ? Icons.delete_outline : Icons.bookmark_add,
+                            color: Colors.white,
+                          ),
+                          label: Text(
+                            isSaved ? "XÓA KHỎI TỪ VỰNG" : "LƯU VÀO TỪ VỰNG",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: isSaved
+                                ? const Color.fromARGB(255, 255, 51, 51)
+                                : Colors.orangeAccent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ],
           ),

@@ -5,14 +5,33 @@ part 'vocab_model.g.dart';
 @HiveType(typeId: 0)
 class VocabModel extends HiveObject {
   @HiveField(0)
-  String word;
+  String vocabId;
 
   @HiveField(1)
-  String meaning;
+  String word;
 
-  VocabModel({required this.word, required this.meaning});
-  @override
-  String toString() {
-    return 'VocabModel(word: $word, meaning: $meaning)';
-  }
+  @HiveField(2)
+  String meaningVi;
+
+  @HiveField(3)
+  String phonetic;
+
+  @HiveField(4)
+  String example;
+
+  @HiveField(5)
+  String? pronunciation;
+
+  @HiveField(6)
+  String partOfSpeech;
+
+  VocabModel({
+    required this.vocabId,
+    required this.word,
+    required this.meaningVi,
+    required this.phonetic,
+    required this.example,
+    this.pronunciation,
+    required this.partOfSpeech,
+  });
 }

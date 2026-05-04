@@ -4,6 +4,7 @@ import '../providers/article_provider.dart';
 import '../widgets/article_card.dart';
 import '../../../shared/widgets/bottom_nav_bar.dart';
 import '../../bookmark/screens/bookmark_screen.dart';
+import '../../dictionary/screens/dictionary_screen.dart';
 
 class ArticleListScreen extends StatefulWidget {
   const ArticleListScreen({super.key});
@@ -171,6 +172,14 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
     switch (selectedIndex) {
       case 0:
         return _buildArticleScreen();
+      case 1:
+        return const DictionaryScreen();
+      case 2:
+        return const Center(child: Text("Flashcards - Coming soon"));
+      case 3:
+        return const Center(child: Text("Vocabulary - Coming soon"));
+      case 4:
+        return const Center(child: Text("Quiz - Coming soon"));
       case 5:
         return const BookmarkScreen();
       default:

@@ -26,28 +26,23 @@ class BookmarkScreen extends StatelessWidget {
                 .toList();
 
             return Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔥 LOGO
                   Image.asset("assets/LOGO1.png", height: 80),
 
-                  const SizedBox(height: 10),
-
-                  // 🧡 TITLE
                   const Text(
                     "Bài báo yêu thích",
                     style: TextStyle(
-                      fontSize: 22,
+                      fontSize: 26,
                       fontWeight: FontWeight.bold,
-                      color: Colors.blue,
+                      color: Color.fromARGB(255, 255, 96, 22),
                     ),
                   ),
 
                   const SizedBox(height: 4),
 
-                  // 📊 COUNT
                   Text(
                     "${bookmarkedArticles.length} bài báo đã lưu",
                     style: const TextStyle(color: Colors.black54),
@@ -55,7 +50,6 @@ class BookmarkScreen extends StatelessWidget {
 
                   const SizedBox(height: 16),
 
-                  // 📰 LIST
                   Expanded(
                     child: bookmarkedArticles.isEmpty
                         ? const Center(child: Text("Chưa có bài nào được lưu"))
