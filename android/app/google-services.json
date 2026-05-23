@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "191947716778",
+    "project_id": "news2learn",
+    "storage_bucket": "news2learn.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:191947716778:android:5496747a3925d2a408b8d3",
+        "android_client_info": {
+          "package_name": "com.example.news2learn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD1U0J09UaTJH8Q-TI401AqVQ8do5jvUiE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

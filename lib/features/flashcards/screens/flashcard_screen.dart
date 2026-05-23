@@ -97,13 +97,11 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
 
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset("assets/LOGO1.png", height: 80),
-
               const Text(
                 "Flashcard",
                 style: TextStyle(

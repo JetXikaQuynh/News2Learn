@@ -1,27 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'models/bookmark_model.dart';
 import 'models/vocab_model.dart';
 import 'models/user_model.dart';
 import 'models/user_vocab_model.dart';
 import 'models/quiz_result_model.dart';
+
 import 'features/articles/providers/article_provider.dart';
-import 'features/articles/screens/article_list_screen.dart';
+import 'features/splash/screens/splash_screen.dart';
+import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 🔥 FIREBASE
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // 🔥 HIVE
   await Hive.initFlutter();
 
   Hive.registerAdapter(BookmarkModelAdapter());
   await Hive.openBox<BookmarkModel>('bookmarkBox');
+
   Hive.registerAdapter(VocabModelAdapter());
   await Hive.openBox<VocabModel>('vocabBox');
+
   Hive.registerAdapter(UserModelAdapter());
   await Hive.openBox<UserModel>('userBox');
+
   Hive.registerAdapter(UserVocabModelAdapter());
   await Hive.openBox<UserVocabModel>('userVocabBox');
+
   Hive.registerAdapter(QuizResultModelAdapter());
   await Hive.openBox<QuizResultModel>('quizResultBox');
 
@@ -41,7 +53,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'News2Learn',
-      home: const ArticleListScreen(),
+
+      home: const SplashScreen(),
     );
   }
 }
