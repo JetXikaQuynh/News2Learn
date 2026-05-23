@@ -286,27 +286,32 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
   // FRONT CARD
   Widget _buildFrontCard(VocabModel vocab) {
     return Center(
+      // Đảm bảo căn giữa toàn bộ khung
       key: const ValueKey("front"),
-
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-
+      child: SingleChildScrollView(
+        // Thêm để tránh overflow nếu text quá dài
+        padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Căn giữa theo chiều dọc
+          crossAxisAlignment:
+              CrossAxisAlignment.center, // Căn giữa theo chiều ngang
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  vocab.word,
-                  style: const TextStyle(
-                    fontSize: 36,
-                    fontWeight: FontWeight.bold,
+                Flexible(
+                  // Thêm để tránh tràn chữ nếu từ vựng quá dài
+                  child: Text(
+                    vocab.word,
+                    style: const TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
                 ),
-
                 const SizedBox(width: 10),
-
                 GestureDetector(
                   onTap: () async {
                     if (vocab.pronunciation != null &&
@@ -314,28 +319,27 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
                       await player.play(UrlSource(vocab.pronunciation!));
                     }
                   },
-
                   child: const Icon(Icons.volume_up, size: 32),
                 ),
               ],
             ),
-
             const SizedBox(height: 14),
-
-            Text(vocab.phonetic, style: const TextStyle(fontSize: 24)),
-
+            Text(
+              vocab.phonetic,
+              style: const TextStyle(fontSize: 24),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 14),
-
             Text(
               "(${vocab.partOfSpeech})",
               style: const TextStyle(fontSize: 24, color: Colors.blue),
+              textAlign: TextAlign.center,
             ),
-
             const SizedBox(height: 40),
-
             const Text(
               "Click để xem nghĩa",
               style: TextStyle(color: Colors.grey, fontSize: 18),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -345,36 +349,35 @@ class _FlashcardScreenState extends State<FlashcardScreen> {
 
   // BACK CARD
   Widget _buildBackCard(VocabModel vocab) {
-    return Padding(
+    return Center(
+      // Bọc Center ở đây để đưa toàn bộ Column vào trung tâm thẻ
       key: const ValueKey("back"),
-      padding: const EdgeInsets.all(24),
-
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Center(
-            child: Text(
+      child: SingleChildScrollView(
+        // Phòng trường hợp nghĩa Tiếng Việt dài nhiều dòng
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Căn giữa nội dung theo chiều dọc
+          crossAxisAlignment:
+              CrossAxisAlignment.center, // Căn giữa nội dung theo chiều ngang
+          children: [
+            const Text(
               "Nghĩa Tiếng Việt",
               style: TextStyle(
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 color: Colors.green,
               ),
-            ),
-          ),
-
-          const SizedBox(height: 30),
-
-          Center(
-            child: Text(
-              vocab.meaningVi,
-              style: const TextStyle(fontSize: 24),
               textAlign: TextAlign.center,
             ),
-          ),
-
-          const SizedBox(height: 30),
-        ],
+            const SizedBox(height: 30),
+            Text(
+              vocab.meaningVi,
+              style: const TextStyle(fontSize: 24),
+              textAlign: TextAlign.center, // Căn giữa các dòng chữ nghĩa
+            ),
+          ],
+        ),
       ),
     );
   }

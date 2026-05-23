@@ -3,6 +3,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'models/bookmark_model.dart';
 import 'models/vocab_model.dart';
+import 'models/user_model.dart';
+import 'models/user_vocab_model.dart';
+import 'models/quiz_result_model.dart';
 import 'features/articles/providers/article_provider.dart';
 import 'features/articles/screens/article_list_screen.dart';
 
@@ -15,6 +18,12 @@ void main() async {
   await Hive.openBox<BookmarkModel>('bookmarkBox');
   Hive.registerAdapter(VocabModelAdapter());
   await Hive.openBox<VocabModel>('vocabBox');
+  Hive.registerAdapter(UserModelAdapter());
+  await Hive.openBox<UserModel>('userBox');
+  Hive.registerAdapter(UserVocabModelAdapter());
+  await Hive.openBox<UserVocabModel>('userVocabBox');
+  Hive.registerAdapter(QuizResultModelAdapter());
+  await Hive.openBox<QuizResultModel>('quizResultBox');
 
   runApp(
     MultiProvider(
