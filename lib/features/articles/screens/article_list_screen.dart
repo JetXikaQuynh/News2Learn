@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/article_provider.dart';
@@ -8,6 +9,7 @@ import '../../dictionary/screens/dictionary_screen.dart';
 import '../../vocabulary/screens/vocabulary_screen.dart';
 import '../../flashcards/screens/flashcard_screen.dart';
 import '../../quiz/screens/quiz_screen.dart';
+import '../../profile/screens/profile_screen.dart';
 
 class ArticleListScreen extends StatefulWidget {
   const ArticleListScreen({super.key});
@@ -59,7 +61,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
 
   Widget _buildArticleScreen() {
     final provider = Provider.of<ArticleProvider>(context);
-
+    final user = FirebaseAuth.instance.currentUser;
     return SafeArea(
       child: provider.articles.isEmpty
           ? const Center(child: CircularProgressIndicator())
@@ -69,31 +71,50 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Image.asset("assets/LOGO1.png", height: 80),
-
                   // 👤 PROFILE
-                  Row(
-                    children: [
-                      const CircleAvatar(
-                        radius: 20,
-                        backgroundColor: Colors.blue,
-                        child: Icon(Icons.person, color: Colors.white),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            "Hi, Phuong Quynh",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                  GestureDetector(
+                    onTap: () async {
+                      // Sử dụng await để đợi khi người dùng đóng ProfileScreen quay lại,
+                      // hàm setState sẽ kích hoạt build lại màn hình để cập nhật tên mới.
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ProfileScreen(),
+                        ),
+                      );
+                      setState(() {});
+                    },
+                    behavior: HitTestBehavior
+                        .opaque, // Giúp nhận diện cả những vùng trống giữa Avatar và Text
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.blue,
+                          backgroundImage: user?.photoURL != null
+                              ? NetworkImage(user!.photoURL!)
+                              : null,
+                          child: user?.photoURL == null
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Hi, ${user?.displayName ?? "Phuong Quynh"}",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
                             ),
-                          ),
-                          Text("Let's start reading News and learning!"),
-                        ],
-                      ),
-                    ],
+                            Text("Let's start reading News and learning!"),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
