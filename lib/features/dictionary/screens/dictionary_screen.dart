@@ -55,7 +55,7 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
               const SizedBox(height: 6),
 
               const Text(
-                "Look up words and build your vocabulary",
+                "Tra từ điển Anh - Việt và xây dựng kho từ vựng của bạn!",
                 style: TextStyle(color: Colors.grey),
               ),
 

@@ -129,7 +129,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                     child: const TextField(
                       decoration: InputDecoration(
                         icon: Icon(Icons.search, color: Colors.red),
-                        hintText: "Search articles...",
+                        hintText: "Search news...",
                         border: InputBorder.none,
                       ),
                     ),

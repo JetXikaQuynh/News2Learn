@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../auth/screens/login_screen.dart';
 import 'user_info_screen.dart';
 import 'statistics_screen.dart';
+import 'change_password_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -112,7 +113,14 @@ class ProfileScreen extends StatelessWidget {
                 _buildMenuItem(
                   icon: Icons.lock_open_outlined,
                   title: "Đổi mật khẩu",
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildMenuItem(
                   icon: Icons.language_outlined,

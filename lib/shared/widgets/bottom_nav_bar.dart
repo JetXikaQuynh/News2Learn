@@ -20,7 +20,7 @@ class CustomBottomNavBar extends StatelessWidget {
       onTap: onTap,
       type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.article), label: "Articles"),
+        BottomNavigationBarItem(icon: Icon(Icons.article), label: "News"),
         BottomNavigationBarItem(icon: Icon(Icons.search), label: "Dictionary"),
         BottomNavigationBarItem(icon: Icon(Icons.style), label: "Flashcards"),
         BottomNavigationBarItem(
