@@ -7,8 +7,7 @@ import '../../../models/vocab_model.dart';
 import '../../../services/rss_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../services/dictionary_service.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../../services/translation_service.dart';
 
 class ArticleDetailScreen extends StatefulWidget {
   final Article article;
@@ -20,7 +19,6 @@ class ArticleDetailScreen extends StatefulWidget {
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
-  OverlayEntry? _overlayEntry;
   String fullContent = "";
   bool isLoading = true;
 
@@ -165,42 +163,137 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   // 🔥 CONTENT + HIGHLIGHT WORD
   Widget _buildContent(BuildContext context, String text) {
-    final words = text.split(" ");
+    // Split text into sentences first so we can translate the whole sentence
+    final sentenceRegex = RegExp(r'(?<=[.!?])\s+|\n+');
+    final sentences = text
+        .split(sentenceRegex)
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
 
     final vocabBox = Hive.box<VocabModel>('vocabBox');
     final savedWords = vocabBox.values.map((e) => e.word.toLowerCase()).toSet();
 
-    return Wrap(
-      children: words.map((word) {
-        final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: sentences.map((sentence) {
+        final words = sentence.split(' ');
 
-        final isSaved = savedWords.contains(cleanWord);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8.0),
+          child: Wrap(
+            children: words.map((word) {
+              final cleanWord = word
+                  .replaceAll(RegExp(r'[^\w]'), '')
+                  .toLowerCase();
+              final isSaved = savedWords.contains(cleanWord);
 
-        return GestureDetector(
-          onTap: () {
-            _showVocabPopup(context, cleanWord);
-          },
-          child: Container(
-            margin: const EdgeInsets.only(right: 4, bottom: 6),
-            padding: isSaved
-                ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
-                : EdgeInsets.zero,
-            decoration: isSaved
-                ? BoxDecoration(
-                    color: Colors.yellow[200],
-                    borderRadius: BorderRadius.circular(4),
-                  )
-                : null,
-            child: Text(
-              "$word ",
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: isSaved ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+              return GestureDetector(
+                onTap: () {
+                  if (cleanWord.isNotEmpty) _showVocabPopup(context, cleanWord);
+                },
+                onDoubleTap: () async {
+                  // Translate the whole sentence to Vietnamese
+                  await _showSentenceTranslation(context, sentence.trim());
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(right: 4, bottom: 6),
+                  padding: isSaved
+                      ? const EdgeInsets.symmetric(horizontal: 4, vertical: 2)
+                      : EdgeInsets.zero,
+                  decoration: isSaved
+                      ? BoxDecoration(
+                          color: Colors.yellow[200],
+                          borderRadius: BorderRadius.circular(4),
+                        )
+                      : null,
+                  child: Text(
+                    "$word ",
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: isSaved ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
           ),
         );
       }).toList(),
+    );
+  }
+
+  // Hiển thị bản dịch câu
+  Future<void> _showSentenceTranslation(
+    BuildContext context,
+    String sentence,
+  ) async {
+    // show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    final translated = await TranslationService().translateToVi(sentence);
+
+    if (!context.mounted) return;
+    Navigator.pop(context); // close loading
+
+    if (translated.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Không thể dịch câu này')));
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return Container(
+          margin: const EdgeInsets.all(40),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Original:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(sentence, style: const TextStyle(fontSize: 16)),
+              const Divider(height: 20),
+              Text(
+                'Vietnamese:',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(translated, style: const TextStyle(fontSize: 16)),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerRight,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Close'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -217,6 +310,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     );
 
     final data = await DictionaryService().fetchWord(word);
+    if (!context.mounted) return;
     Navigator.pop(context); // Đóng loading
 
     if (data == null) {
@@ -299,7 +393,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                     const SizedBox(height: 15),
 
                     // Hiển thị danh sách các loại từ và nghĩa
-                    ...(data["meanings"] as List).map((m) {
+                    ...((data["meanings"] as List).map((m) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Column(
@@ -323,7 +417,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    })),
 
                     const Divider(height: 30),
                     //NÚT LƯU / XÓA
