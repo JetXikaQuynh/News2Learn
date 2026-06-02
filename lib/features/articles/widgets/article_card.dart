@@ -23,7 +23,7 @@ class ArticleCard extends StatelessWidget {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFBFD7F2),
+          color: Colors.blue.shade100,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

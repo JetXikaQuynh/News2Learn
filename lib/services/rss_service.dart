@@ -1,8 +1,10 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+
 import 'package:http/http.dart' as http;
 import 'package:webfeed/webfeed.dart';
 import '../models/article_model.dart';
 import 'package:html/parser.dart' as parser;
-import 'package:html/dom.dart';
 
 class RssService {
   // final String _url = "https://feeds.bbci.co.uk/news/world/rss.xml";
@@ -37,7 +39,7 @@ class RssService {
         );
       }).toList();
     } catch (e) {
-      print("RSS ERROR: $e");
+      developer.log("RSS ERROR: $e", name: 'RssService');
       return [];
     }
   }
@@ -51,21 +53,75 @@ class RssService {
 
       final document = parser.parse(response.body);
 
-      // 🔥 BBC thường dùng class này
-      final elements = document.querySelectorAll(
-        'div[data-component="text-block"]',
+      // 1. Try structured JSON-LD first (many sites expose articleBody here)
+      final jsonLdScripts = document.querySelectorAll(
+        'script[type="application/ld+json"]',
       );
+      for (final script in jsonLdScripts) {
+        final text = script.text.trim();
+        if (text.isEmpty) continue;
 
-      if (elements.isEmpty) return "";
+        try {
+          final data = json.decode(text);
 
-      // nối tất cả đoạn text lại
-      final content = elements.map((e) => e.text.trim()).join("\n\n");
+          String? articleBody;
+          if (data is Map<String, dynamic>) {
+            articleBody = _extractArticleBodyFromJson(data);
+          } else if (data is List) {
+            for (final item in data) {
+              if (item is Map<String, dynamic>) {
+                articleBody = _extractArticleBodyFromJson(item);
+                if (articleBody != null && articleBody.isNotEmpty) break;
+              }
+            }
+          }
 
-      return content;
+          if (articleBody != null && articleBody.trim().isNotEmpty) {
+            return articleBody.trim();
+          }
+        } catch (_) {
+          // ignore invalid JSON in script tags
+        }
+      }
+
+      // 2. Fallback to known HTML selectors
+      final selectors = [
+        'div[data-component="text-block"]',
+        'div[data-testid="article-body"]',
+        'div[data-testid="articleBody"]',
+        'div[class*="article-body"]',
+        'article',
+        'main',
+        'section',
+      ];
+
+      for (final selector in selectors) {
+        final elements = document.querySelectorAll(selector);
+        if (elements.isEmpty) continue;
+
+        final content = elements
+            .map((e) => e.text.trim())
+            .where((t) => t.isNotEmpty)
+            .join("\n\n");
+        if (content.isNotEmpty) return content;
+      }
+
+      return "";
     } catch (e) {
-      print("CRAWL ERROR: $e");
+      developer.log("CRAWL ERROR: $e", name: 'RssService');
       return "";
     }
+  }
+
+  String? _extractArticleBodyFromJson(Map<String, dynamic> data) {
+    final possibleKeys = ['articleBody', 'article_body', 'articlebody'];
+    for (final key in possibleKeys) {
+      final value = data[key];
+      if (value is String && value.trim().isNotEmpty) {
+        return value;
+      }
+    }
+    return null;
   }
 
   // 🔧 Lấy ảnh từ RSS item
