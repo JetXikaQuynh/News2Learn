@@ -21,7 +21,59 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
   bool obscurePassword = true;
 
+  String? _validateNameAndEmail(String name, String email) {
+    final trimmedName = name.trim();
+    final trimmedEmail = email.trim();
+
+    if (trimmedName.isEmpty || trimmedEmail.isEmpty) {
+      return 'Vui lòng nhập Email /Họ và tên';
+    }
+
+    final hasNameLeadingOrTrailingSpace = trimmedName != name;
+    final hasNameMultipleSpaces = trimmedName.contains(RegExp(r'\s{2,}'));
+    final hasEmailWhitespace = email.contains(' ') || trimmedEmail != email;
+    if (hasNameLeadingOrTrailingSpace ||
+        hasNameMultipleSpaces ||
+        hasEmailWhitespace) {
+      return 'Email /Họ và tên không được chứa khoảng trắng giữa các chữ hoặc đầu/cuối.';
+    }
+
+    if (RegExp(r'\d').hasMatch(trimmedName)) {
+      return 'Họ và tên phải là chữ cái';
+    }
+
+    final nameRegex = RegExp(r'^[A-Za-zÀ-ỹ\s]+$');
+    if (!nameRegex.hasMatch(trimmedName)) {
+      return 'Email /Họ và tên không được chứa ký tự đặc biệt';
+    }
+
+    final invalidEmailChar = RegExp(r'[^A-Za-z0-9._@\-]');
+    if (invalidEmailChar.hasMatch(trimmedEmail)) {
+      return 'Email /Họ và tên không được chứa ký tự đặc biệt';
+    }
+
+    final emailRegex = RegExp(
+      r'^[A-Za-z0-9](?:[A-Za-z0-9._-]*[A-Za-z0-9])?@gmail\.com$',
+    );
+    if (!emailRegex.hasMatch(trimmedEmail)) {
+      return 'Địa chỉ Gmail không hợp lệ. Vui lòng kiểm tra lại.';
+    }
+
+    return null;
+  }
+
   Future<void> register() async {
+    final validationError = _validateNameAndEmail(
+      nameController.text,
+      emailController.text,
+    );
+    if (validationError != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(validationError)));
+      return;
+    }
+
     setState(() {
       isLoading = true;
     });
