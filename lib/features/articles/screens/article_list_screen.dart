@@ -10,6 +10,7 @@ import '../../vocabulary/screens/vocabulary_screen.dart';
 import '../../flashcards/screens/flashcard_screen.dart';
 import '../../quiz/screens/quiz_screen.dart';
 import '../../profile/screens/profile_screen.dart';
+import '../../chatbot/screens/chatbot_topic_screen.dart';
 
 class ArticleListScreen extends StatefulWidget {
   const ArticleListScreen({super.key});
@@ -62,133 +63,159 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
   Widget _buildArticleScreen() {
     final provider = Provider.of<ArticleProvider>(context);
     final user = FirebaseAuth.instance.currentUser;
-    return SafeArea(
-      child: provider.articles.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Image.asset("assets/LOGO1.png", height: 80),
-                  // 👤 PROFILE
-                  GestureDetector(
-                    onTap: () async {
-                      // Sử dụng await để đợi khi người dùng đóng ProfileScreen quay lại,
-                      // hàm setState sẽ kích hoạt build lại màn hình để cập nhật tên mới.
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const ProfileScreen(),
-                        ),
-                      );
-                      setState(() {});
-                    },
-                    behavior: HitTestBehavior
-                        .opaque, // Giúp nhận diện cả những vùng trống giữa Avatar và Text
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 20,
-                          backgroundColor: Colors.blue,
-                          backgroundImage: user?.photoURL != null
-                              ? NetworkImage(user!.photoURL!)
-                              : null,
-                          child: user?.photoURL == null
-                              ? const Icon(Icons.person, color: Colors.white)
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Hi, ${user?.displayName ?? "Phuong Quynh"}",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue,
-                              ),
+    return Stack(
+      children: [
+        SafeArea(
+          child: provider.articles.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Image.asset("assets/LOGO1.png", height: 80),
+                      // 👤 PROFILE
+                      GestureDetector(
+                        onTap: () async {
+                          // Sử dụng await để đợi khi người dùng đóng ProfileScreen quay lại,
+                          // hàm setState sẽ kích hoạt build lại màn hình để cập nhật tên mới.
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ProfileScreen(),
                             ),
-                            Text("Let's start reading News and learning!"),
+                          );
+                          setState(() {});
+                        },
+                        behavior: HitTestBehavior
+                            .opaque, // Giúp nhận diện cả những vùng trống giữa Avatar và Text
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundColor: Colors.blue,
+                              backgroundImage: user?.photoURL != null
+                                  ? NetworkImage(user!.photoURL!)
+                                  : null,
+                              child: user?.photoURL == null
+                                  ? const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                    )
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Hi, ${user?.displayName ?? "Phuong Quynh"}",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text("Let's start reading News and learning!"),
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // 🔍 SEARCH
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade100,
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: const TextField(
-                      decoration: InputDecoration(
-                        icon: Icon(Icons.search, color: Colors.red),
-                        hintText: "Search news...",
-                        border: InputBorder.none,
                       ),
-                    ),
-                  ),
 
-                  const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                  // 🧩 CATEGORY
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: categories.asMap().entries.map((entry) {
-                      int idx = entry.key;
-                      String label = entry.value;
-                      return Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
-                        ),
+                      // 🔍 SEARCH
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
                         decoration: BoxDecoration(
-                          // Đổi màu để làm nổi bật category đang chọn (giả định dùng tạm biến cục bộ)
-                          color: idx == 0 ? Colors.blue : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue.shade100),
+                          color: Colors.blue.shade100,
+                          borderRadius: BorderRadius.circular(30),
                         ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: idx == 0 ? Colors.white : Colors.blue,
-                            fontWeight: idx == 0
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+                        child: const TextField(
+                          decoration: InputDecoration(
+                            icon: Icon(Icons.search, color: Colors.red),
+                            hintText: "Search news...",
+                            border: InputBorder.none,
                           ),
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
 
-                  const SizedBox(height: 20),
+                      const SizedBox(height: 16),
 
-                  // 📰 GRID
-                  GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: provider.articles.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisSpacing: 10,
-                          crossAxisSpacing: 10,
-                          childAspectRatio: 0.65,
-                        ),
-                    itemBuilder: (context, index) {
-                      return ArticleCard(article: provider.articles[index]);
-                    },
+                      // 🧩 CATEGORY
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: categories.asMap().entries.map((entry) {
+                          int idx = entry.key;
+                          String label = entry.value;
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              // Đổi màu để làm nổi bật category đang chọn (giả định dùng tạm biến cục bộ)
+                              color: idx == 0 ? Colors.blue : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.blue.shade100),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: idx == 0 ? Colors.white : Colors.blue,
+                                fontWeight: idx == 0
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // 📰 GRID
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: provider.articles.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              mainAxisSpacing: 10,
+                              crossAxisSpacing: 10,
+                              childAspectRatio: 0.65,
+                            ),
+                        itemBuilder: (context, index) {
+                          return ArticleCard(article: provider.articles[index]);
+                        },
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+        ),
+
+        Positioned(
+          right: 5, //
+          bottom: 1, //
+          child: InkWell(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ChatbotTopicScreen()),
+              );
+            },
+            borderRadius: BorderRadius.circular(100),
+            child: Image.asset(
+              'assets/bot_avatar2.png',
+              width: 150,
+              height: 150,
             ),
+          ),
+        ),
+      ],
     );
   }
 

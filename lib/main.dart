@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'models/bookmark_model.dart';
 import 'models/vocab_model.dart';
@@ -15,6 +16,9 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 🔧 LOAD ENV VARIABLES
+  await dotenv.load(fileName: ".env");
 
   // 🔥 FIREBASE
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
