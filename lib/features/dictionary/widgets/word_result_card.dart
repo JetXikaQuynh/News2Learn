@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../models/vocab_model.dart';
+import '../../../shared/theme/design_tokens.dart';
 
 class WordResultCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -39,134 +40,185 @@ class WordResultCard extends StatelessWidget {
               // 🔊 BUTTONS
               Row(
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      if (data["audio"] != null && data["audio"] != "") {
-                        await player.play(UrlSource(data["audio"]));
-                      }
-                    },
-                    icon: const Icon(
-                      Icons.volume_up,
-                      color: Colors.white,
-                      size: 20,
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: DesignTokens.primaryAccentGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: DesignTokens.accentShadow,
                     ),
-                    label: const Text(
-                      "Pronounce",
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF4294F7),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    child: ElevatedButton.icon(
+                      onPressed: () async {
+                        if (data["audio"] != null && data["audio"] != "") {
+                          await player.play(UrlSource(data["audio"]));
+                        }
+                      },
+                      icon: const Icon(
+                        Icons.volume_up_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      label: const Text(
+                        "Pronounce",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      if (isSaved) {
-                        box.deleteAt(savedItemIndex);
-                      } else {
-                        box.add(
-                          VocabModel(
-                            vocabId: DateTime.now().toString(),
-                            word: word,
-                            meaningVi: groupedMeanings.values.first.first,
-                            phonetic: data["phonetic"] ?? "",
-                            example: "",
-                            pronunciation: data["audio"],
-                            partOfSpeech: groupedMeanings.keys.first,
-                          ),
-                        );
-                      }
-                    },
-                    icon: Icon(
-                      isSaved ? Icons.check : Icons.bookmark_add,
-                      color: Colors.white,
-                      size: 20,
+                  const SizedBox(width: 12),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: isSaved ? Colors.grey.shade200 : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: isSaved ? [] : DesignTokens.softShadow,
+                      border: isSaved ? null : Border.all(color: const Color(0xFF8B5CF6), width: 1.5),
                     ),
-                    label: Text(
-                      isSaved ? "Saved" : "Save",
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isSaved
-                          ? Colors.grey
-                          : const Color(0xFFFF8551),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        if (isSaved) {
+                          box.deleteAt(savedItemIndex);
+                        } else {
+                          box.add(
+                            VocabModel(
+                              vocabId: DateTime.now().toString(),
+                              word: word,
+                              meaningVi: groupedMeanings.values.first.first,
+                              phonetic: data["phonetic"] ?? "",
+                              example: "",
+                              pronunciation: data["audio"],
+                              partOfSpeech: groupedMeanings.keys.first,
+                            ),
+                          );
+                        }
+                      },
+                      icon: Icon(
+                        isSaved ? Icons.check_circle_rounded : Icons.bookmark_add_rounded,
+                        color: isSaved ? Colors.grey.shade600 : const Color(0xFF8B5CF6),
+                        size: 20,
                       ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // 🧠 WORD & POS
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    word,
-                    style: const TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  if (groupedMeanings.isNotEmpty)
-                    Text(
-                      "(${groupedMeanings.keys.first})",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        color: Color(0xFF4294F7),
-                      ),
-                    ),
-                ],
-              ),
-
-              // 🔤 PHONETIC
-              Text(
-                data["phonetic"] ?? "",
-                style: const TextStyle(color: Color(0xFF4294F7), fontSize: 18),
-              ),
-
-              const SizedBox(height: 15),
-
-              // 🇻🇳 MEANING LIST
-              ...groupedMeanings.entries.map((entry) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 20.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _getPosHeader(entry.key),
-                        style: const TextStyle(
-                          fontSize: 22,
+                      label: Text(
+                        isSaved ? "Saved" : "Save Word",
+                        style: TextStyle(
+                          color: isSaved ? Colors.grey.shade600 : const Color(0xFF8B5CF6),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      ...entry.value.asMap().entries.map((meaningEntry) {
-                        return Padding(
-                          padding: const EdgeInsets.only(left: 12, bottom: 6),
-                          child: Text(
-                            "${meaningEntry.key + 1}. ${meaningEntry.value}",
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.black87,
-                              height: 1.4,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // 🧠 WORD CARD
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: DesignTokens.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          word,
+                          style: DesignTokens.headingStyle.copyWith(fontSize: 32),
+                        ),
+                        const SizedBox(width: 12),
+                        if (groupedMeanings.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            margin: const EdgeInsets.only(bottom: 6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFEFF6FF),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              groupedMeanings.keys.first.toUpperCase(),
+                              style: DesignTokens.bodyStyle.copyWith(
+                                color: const Color(0xFF3B82F6),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                );
-              }).toList(),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      data["phonetic"] ?? "",
+                      style: DesignTokens.subheadingStyle.copyWith(
+                        color: const Color(0xFF8B5CF6),
+                        fontSize: 18,
+                      ),
+                    ),
+
+                    const Divider(height: 32, color: Color(0xFFF1F5F9)),
+
+                    // 🇻🇳 MEANING LIST
+                    ...groupedMeanings.entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _getPosHeader(entry.key),
+                              style: DesignTokens.subheadingStyle.copyWith(
+                                color: const Color(0xFF334155),
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            ...entry.value.asMap().entries.map((meaningEntry) {
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "• ",
+                                      style: TextStyle(
+                                        color: Color(0xFF8B5CF6),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        meaningEntry.value,
+                                        style: DesignTokens.bodyStyle.copyWith(
+                                          fontSize: 16,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  ],
+                ),
+              ),
 
               // Thêm khoảng trống ở cuối để không bị sát thanh điều hướng
               const SizedBox(height: 50),

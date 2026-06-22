@@ -6,6 +6,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import '../../../models/quiz_result_model.dart';
 import '../../../models/user_vocab_model.dart';
 import '../../../models/vocab_model.dart';
+import '../../../shared/theme/design_tokens.dart';
 
 import '../widgets/quiz_body.dart';
 import '../screens/quiz_result_srceen.dart';
@@ -178,11 +179,29 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   Widget build(BuildContext context) {
     if (allWords.length < 4) {
-      return const Scaffold(
-        body: Center(
-          child: Text(
-            "Cần ít nhất 4 từ vựng để làm Quiz",
-            style: TextStyle(fontSize: 20),
+      return Container(
+        decoration: const BoxDecoration(
+          gradient: DesignTokens.pastelBackgroundGradient,
+        ),
+        child: const Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.quiz_outlined, size: 72, color: Color(0xFFCBD5E1)),
+                SizedBox(height: 16),
+                Text(
+                  "Cần ít nhất 4 từ vựng để làm Quiz",
+                  style: TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -190,20 +209,24 @@ class _QuizScreenState extends State<QuizScreen> {
 
     final vocab = quizWords[currentQuestion];
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-
-      body: QuizBody(
-        vocab: vocab,
-        currentQuestion: currentQuestion,
-        totalQuestions: quizWords.length,
-        score: score,
-        options: options,
-        answered: answered,
-        selectedIndex: selectedIndex,
-        correctIndex: correctIndex,
-        onSelectAnswer: selectAnswer,
-        onNextQuestion: nextQuestion,
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: DesignTokens.pastelBackgroundGradient,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: QuizBody(
+          vocab: vocab,
+          currentQuestion: currentQuestion,
+          totalQuestions: quizWords.length,
+          score: score,
+          options: options,
+          answered: answered,
+          selectedIndex: selectedIndex,
+          correctIndex: correctIndex,
+          onSelectAnswer: selectAnswer,
+          onNextQuestion: nextQuestion,
+        ),
       ),
     );
   }

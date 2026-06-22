@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/chat_message.dart';
 import '../../../services/ai_service.dart';
+import '../../../shared/theme/design_tokens.dart';
 import '../widgets/chat_bubble.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -14,13 +15,10 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
-
   final ScrollController _scrollController = ScrollController();
-
   final AIService _aiService = AIService();
 
   List<ChatMessage> messages = [];
-
   bool isLoading = false;
 
   @override
@@ -29,25 +27,24 @@ class _ChatScreenState extends State<ChatScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       setState(() {
-        isLoading =
-            true; // Hiển thị trạng thái "AI is typing..." khi đang nạp câu hỏi đầu tiên
+        isLoading = true;
       });
 
       try {
-        // Gọi API bắt đầu cuộc trò chuyện và nhận câu hỏi ngẫu nhiên từ Gemini
         final initialData = await _aiService.startConversation(widget.topic);
         final welcomeText =
             initialData["reply"] ?? "Hello! Let's talk about ${widget.topic}.";
 
         setState(() {
           messages.add(ChatMessage(text: welcomeText, isUser: false));
-          isLoading = false; // Tắt trạng thái chờ loading
+          isLoading = false;
         });
       } catch (e) {
         setState(() {
           messages.add(
             ChatMessage(
-              text: "Hello! Welcome to our session about ${widget.topic}.",
+              text:
+                  "Hello! Welcome to our session about ${widget.topic}.",
               isUser: false,
             ),
           );
@@ -55,27 +52,14 @@ class _ChatScreenState extends State<ChatScreen> {
         });
       }
     });
-
-    // WidgetsBinding.instance.addPostFrameCallback((_) async {
-    //   await _aiService.startConversation(widget.topic);
-    // });
-
-    // messages.add(
-    //   ChatMessage(
-    //     text: "Hello! Let's practice English about ${widget.topic}.",
-    //     isUser: false,
-    //   ),
-    // );
   }
 
   Future<void> sendMessage() async {
     final text = _controller.text.trim();
-
     if (text.isEmpty) return;
 
     setState(() {
       messages.add(ChatMessage(text: text, isUser: true));
-
       isLoading = true;
     });
 
@@ -92,18 +76,15 @@ class _ChatScreenState extends State<ChatScreen> {
           messages[lastIndex] = ChatMessage(
             text: messages[lastIndex].text,
             isUser: true,
-            correction: correction, // Gắn lỗi sai vào đây
+            correction: correction,
           );
         }
-
-        // Thêm phản hồi tiếp theo của AI chatbot
         messages.add(ChatMessage(text: reply, isUser: false));
         isLoading = false;
       });
     } catch (e) {
       setState(() {
         messages.add(ChatMessage(text: "Error: $e", isUser: false));
-
         isLoading = false;
       });
     }
@@ -121,86 +102,210 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7F7FA),
-      appBar: AppBar(
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        title: Text(
-          widget.topic,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: DesignTokens.pastelBackgroundGradient,
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                return ChatBubble(message: messages[index]);
-              },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: GestureDetector(
+            onTap: () => Navigator.maybePop(context),
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: DesignTokens.softShadow,
+              ),
+              child: const Icon(Icons.arrow_back_rounded,
+                  color: Color(0xFF334155), size: 20),
             ),
           ),
-
-          if (isLoading)
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 16,
-                    backgroundColor: Colors.blue.shade100,
-                    child: const Icon(
-                      Icons.smart_toy,
-                      size: 18,
-                      color: Colors.blue,
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Text(
-                    "AI is typing...",
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                ],
+          title: Column(
+            children: [
+              Text(
+                widget.topic,
+                style: DesignTokens.subheadingStyle.copyWith(
+                  fontSize: 15,
+                  color: const Color(0xFF1E293B),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              Text(
+                "AI Tutor đang trực tuyến",
+                style: DesignTokens.bodyStyle.copyWith(
+                  fontSize: 12,
+                  color: Colors.green.shade500,
+                ),
+              ),
+            ],
+          ),
+          centerTitle: true,
+          actions: [
+            Container(
+              margin: const EdgeInsets.all(8),
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: DesignTokens.softShadow,
+              ),
+              child: const Icon(Icons.more_vert_rounded,
+                  color: Color(0xFF334155), size: 20),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView.builder(
+                controller: _scrollController,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  return ChatBubble(message: messages[index]);
+                },
               ),
             ),
 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: const BoxDecoration(color: Colors.white),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  const Icon(Icons.mic, color: Colors.blue),
+            if (isLoading)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: AssetImage('assets/bot_avatar.png'),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(4),
+                            topRight: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
+                          ),
+                          boxShadow: DesignTokens.softShadow,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _buildTypingDot(delay: 0),
+                            const SizedBox(width: 4),
+                            _buildTypingDot(delay: 150),
+                            const SizedBox(width: 4),
+                            _buildTypingDot(delay: 300),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-                  const SizedBox(width: 8),
-
-                  Expanded(
-                    child: TextField(
-                      controller: _controller,
-                      onSubmitted: (_) => sendMessage(),
-                      decoration: const InputDecoration(
-                        hintText: "Type your message...",
-                        border: InputBorder.none,
+            // INPUT BAR
+            Container(
+              margin: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: DesignTokens.softShadow,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+              child: SafeArea(
+                child: Row(
+                  children: [
+                    const SizedBox(width: 4),
+                    Container(
+                      width: 40,
+                      height: 40,
+                      margin: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: const Icon(Icons.mic_rounded,
+                          color: Color(0xFF8B5CF6), size: 20),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _controller,
+                        onSubmitted: (_) => sendMessage(),
+                        style: DesignTokens.bodyStyle.copyWith(
+                          fontSize: 15,
+                          color: const Color(0xFF1E293B),
+                        ),
+                        decoration: InputDecoration(
+                          hintText: "Nhập tin nhắn...",
+                          hintStyle: DesignTokens.bodyStyle.copyWith(
+                              color: Colors.grey.shade400, fontSize: 15),
+                          border: InputBorder.none,
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 14),
+                        ),
                       ),
                     ),
-                  ),
-
-                  IconButton(
-                    icon: const Icon(Icons.send, color: Colors.blue),
-                    onPressed: sendMessage,
-                  ),
-                ],
+                    Container(
+                      margin: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: DesignTokens.primaryAccentGradient,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: DesignTokens.accentShadow,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.send_rounded,
+                            color: Colors.white, size: 20),
+                        onPressed: sendMessage,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
+    );
+  }
+
+  Widget _buildTypingDot({required int delay}) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0.3, end: 1.0),
+      duration: Duration(milliseconds: 600 + delay),
+      builder: (context, value, child) {
+        return Opacity(
+          opacity: value,
+          child: Container(
+            width: 8,
+            height: 8,
+            decoration: const BoxDecoration(
+              color: Color(0xFF8B5CF6),
+              shape: BoxShape.circle,
+            ),
+          ),
+        );
+      },
     );
   }
 

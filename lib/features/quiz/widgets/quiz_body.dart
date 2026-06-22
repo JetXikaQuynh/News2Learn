@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
 import '../../../models/vocab_model.dart';
+import '../../../shared/theme/design_tokens.dart';
 
 class QuizBody extends StatelessWidget {
   final VocabModel vocab;
@@ -34,153 +34,226 @@ class QuizBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: DesignTokens.pastelBackgroundGradient,
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-
             children: [
-              const Text(
+              // TITLE
+              Text(
                 "Quiz",
-                style: TextStyle(
+                style: DesignTokens.headingStyle.copyWith(
                   fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.deepOrange,
+                  foreground: Paint()
+                    ..shader = DesignTokens.primaryAccentGradient.createShader(
+                      const Rect.fromLTWH(0, 0, 150, 70),
+                    ),
                 ),
               ),
-
-              const SizedBox(height: 6),
-
-              const Text(
+              const SizedBox(height: 4),
+              Text(
                 "Trắc nghiệm kiểm tra từ vựng",
-                style: TextStyle(color: Colors.black87),
+                style: DesignTokens.bodyStyle,
               ),
+              const SizedBox(height: 24),
 
-              const SizedBox(height: 40),
-
+              // PROGRESS ROW
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Câu ${currentQuestion + 1}/$totalQuestions",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: DesignTokens.subheadingStyle.copyWith(
+                        color: const Color(0xFF334155), fontSize: 16),
                   ),
-
-                  Text(
-                    "Điểm: $score",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: DesignTokens.primaryAccentGradient,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: DesignTokens.accentShadow,
                     ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              LinearProgressIndicator(
-                value: (currentQuestion + 1) / totalQuestions,
-                backgroundColor: Colors.grey[300],
-                color: Colors.deepOrange,
-                minHeight: 6,
-                borderRadius: BorderRadius.circular(10),
-              ),
-
-              const SizedBox(height: 35),
-
-              const Text(
-                "Nghĩa của từ dưới đây là gì?",
-                style: TextStyle(fontSize: 25, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 10),
-
-              Row(
-                children: [
-                  Text(
-                    vocab.word,
-                    style: const TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.blue,
-                    ),
-                  ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: Text(
-                      vocab.phonetic,
-                      style: const TextStyle(fontSize: 18, color: Colors.grey),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded,
+                            color: Colors.white, size: 16),
+                        const SizedBox(width: 4),
+                        Text(
+                          "$score điểm",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
+              const SizedBox(height: 10),
 
+              // PROGRESS BAR
+              Container(
+                height: 8,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: DesignTokens.softShadow,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: (currentQuestion + 1) / totalQuestions,
+                    backgroundColor: Colors.transparent,
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                        Color(0xFF8B5CF6)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 28),
+
+              // QUESTION CARD
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: DesignTokens.softShadow,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Nghĩa của từ dưới đây là gì?",
+                      style: DesignTokens.bodyStyle.copyWith(
+                        fontSize: 14,
+                        color: Colors.grey.shade500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          vocab.word,
+                          style: DesignTokens.headingStyle.copyWith(
+                            fontSize: 36,
+                            foreground: Paint()
+                              ..shader =
+                                  DesignTokens.primaryAccentGradient
+                                      .createShader(
+                                const Rect.fromLTWH(0, 0, 200, 50),
+                              ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: Text(
+                            vocab.phonetic,
+                            style: DesignTokens.bodyStyle.copyWith(
+                                color: Colors.grey.shade400),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 20),
 
+              // ANSWER OPTIONS
               ...List.generate(options.length, (index) {
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-
+                  padding: const EdgeInsets.only(bottom: 12),
                   child: GestureDetector(
                     onTap: () => onSelectAnswer(index),
-
-                    child: Container(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 250),
                       width: double.infinity,
-                      padding: const EdgeInsets.all(15),
-
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: getOptionColor(index),
-                        borderRadius: BorderRadius.circular(14),
-
+                        color: _getOptionColor(index),
+                        borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: getBorderColor(index),
-                          width: 1.5,
+                          color: _getBorderColor(index),
+                          width: 2,
                         ),
+                        boxShadow: answered && index == correctIndex
+                            ? [
+                                BoxShadow(
+                                  color: Colors.green.withValues(alpha: 0.2),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 6),
+                                )
+                              ]
+                            : DesignTokens.softShadow,
                       ),
-
                       child: Row(
                         children: [
-                          CircleAvatar(
-                            radius: 16,
-                            backgroundColor: Colors.grey[300],
-
-                            child: Text(
-                              String.fromCharCode(65 + index),
-                              style: const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
+                          Container(
+                            width: 36,
+                            height: 36,
+                            decoration: BoxDecoration(
+                              color: _getCircleColor(index),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Center(
+                              child: Text(
+                                String.fromCharCode(65 + index),
+                                style: TextStyle(
+                                  color: _getCircleTextColor(index),
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
                               ),
                             ),
                           ),
-
                           const SizedBox(width: 14),
-
                           Expanded(
                             child: Text(
                               options[index],
-                              style: const TextStyle(
-                                fontSize: 18,
+                              style: DesignTokens.bodyStyle.copyWith(
+                                fontSize: 16,
                                 fontWeight: FontWeight.w500,
+                                color: const Color(0xFF1E293B),
                               ),
                             ),
                           ),
-
                           if (answered && index == correctIndex)
-                            const Icon(Icons.check, color: Colors.green),
-
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: Colors.green.shade400,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.check,
+                                  color: Colors.white, size: 16),
+                            ),
                           if (answered &&
                               selectedIndex == index &&
                               index != correctIndex)
-                            const Icon(Icons.close, color: Colors.red),
+                            Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: Colors.red.shade400,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.close,
+                                  color: Colors.white, size: 16),
+                            ),
                         ],
                       ),
                     ),
@@ -188,50 +261,91 @@ class QuizBody extends StatelessWidget {
                 );
               }),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 8),
 
+              // FEEDBACK
               if (answered && selectedIndex == correctIndex)
-                const Text(
-                  "Tuyệt vời!",
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text("🎉", style: TextStyle(fontSize: 22)),
+                      const SizedBox(width: 10),
+                      Text(
+                        "Tuyệt vời! Câu trả lời chính xác!",
+                        style: DesignTokens.bodyStyle.copyWith(
+                          color: Colors.green.shade700,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
               if (answered && selectedIndex != correctIndex)
-                Text(
-                  "Sai rồi! Đáp án đúng là: ${options[correctIndex]}",
-                  style: const TextStyle(
-                    color: Colors.red,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text("💡", style: TextStyle(fontSize: 22)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "Đáp án đúng: ${options[correctIndex]}",
+                          style: DesignTokens.bodyStyle.copyWith(
+                            color: Colors.red.shade700,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 16),
 
               if (answered)
-                Align(
-                  alignment: Alignment.centerRight,
-
-                  child: ElevatedButton(
-                    onPressed: onNextQuestion,
-
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                SizedBox(
+                  width: double.infinity,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: DesignTokens.primaryAccentGradient,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: DesignTokens.accentShadow,
                     ),
-
-                    child: const Text(
-                      "Tiếp tục",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                    child: ElevatedButton(
+                      onPressed: onNextQuestion,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: const Text(
+                        "Tiếp tục →",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ),
                 ),
+
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -239,31 +353,37 @@ class QuizBody extends StatelessWidget {
     );
   }
 
-  Color getOptionColor(int index) {
+  Color _getOptionColor(int index) {
     if (!answered) return Colors.white;
-
-    if (index == correctIndex) {
-      return Colors.green.withOpacity(0.15);
-    }
-
+    if (index == correctIndex) return Colors.green.shade50;
     if (selectedIndex == index && index != correctIndex) {
-      return Colors.red.withOpacity(0.12);
+      return Colors.red.shade50;
     }
-
     return Colors.white;
   }
 
-  Color getBorderColor(int index) {
-    if (!answered) return Colors.grey.shade300;
-
-    if (index == correctIndex) {
-      return Colors.green;
-    }
-
+  Color _getBorderColor(int index) {
+    if (!answered) return Colors.grey.shade200;
+    if (index == correctIndex) return Colors.green.shade400;
     if (selectedIndex == index && index != correctIndex) {
-      return Colors.red;
+      return Colors.red.shade400;
     }
+    return Colors.grey.shade200;
+  }
 
-    return Colors.grey.shade300;
+  Color _getCircleColor(int index) {
+    if (!answered) return const Color(0xFFF1F5F9);
+    if (index == correctIndex) return Colors.green.shade400;
+    if (selectedIndex == index && index != correctIndex) {
+      return Colors.red.shade400;
+    }
+    return const Color(0xFFF1F5F9);
+  }
+
+  Color _getCircleTextColor(int index) {
+    if (!answered) return const Color(0xFF475569);
+    if (index == correctIndex) return Colors.white;
+    if (selectedIndex == index && index != correctIndex) return Colors.white;
+    return const Color(0xFF475569);
   }
 }

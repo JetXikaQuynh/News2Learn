@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import '../models/chat_message.dart';
-import '../../../services/translation_service.dart'; // Đảm bảo đường dẫn này đúng với dự án của bạn
+import '../../../services/translation_service.dart';
+import '../../../shared/theme/design_tokens.dart';
 
 class ChatBubble extends StatefulWidget {
   final ChatMessage message;
@@ -15,43 +16,31 @@ class ChatBubble extends StatefulWidget {
 class _ChatBubbleState extends State<ChatBubble> {
   final TranslationService _translationService = TranslationService();
   final FlutterTts _flutterTts = FlutterTts();
-  bool _isTranslating = false; // Trạng thái vòng xoay loading khi đang dịch
+  bool _isTranslating = false;
 
   Future<void> _speak(String text) async {
     try {
-      // Thiết lập ngôn ngữ đọc là tiếng Anh Mỹ
       await _flutterTts.setLanguage("en-US");
-
-      // Thiết lập tốc độ đọc (0.0 đến 1.0). 0.45 đến 0.5 là vừa phải cho người học
       await _flutterTts.setSpeechRate(0.6);
-
-      // Thiết lập cao độ giọng nói (0.5 đến 2.0)
       await _flutterTts.setPitch(1.0);
-
-      // Kích hoạt phát âm đoạn văn bản
       await _flutterTts.speak(text);
     } catch (e) {
       debugPrint("Lỗi phát âm TTS: $e");
     }
   }
 
-  // Hàm xử lý gọi API dịch thuật Google
   Future<void> _handleTranslate() async {
-    // Nếu tin nhắn đã dịch rồi, bấm lại sẽ ẩn/hiện hoặc không cần dịch lại để tiết kiệm tài nguyên
-    if (widget.message.translation != null) {
-      return;
-    }
+    if (widget.message.translation != null) return;
 
     setState(() {
       _isTranslating = true;
     });
 
-    // Gọi phương thức dịch từ file TranslationService của bạn
-    final result = await _translationService.translateToVi(widget.message.text);
+    final result =
+        await _translationService.translateToVi(widget.message.text);
 
     if (mounted) {
       setState(() {
-        // Lưu kết quả vào biến translation của Model để tránh trùng lặp khi scroll listview
         widget.message.translation = result.isNotEmpty
             ? result
             : "Không thể dịch văn bản này.";
@@ -62,7 +51,7 @@ class _ChatBubbleState extends State<ChatBubble> {
 
   @override
   Widget build(BuildContext context) {
-    // TRƯỜNG HỢP 1: TIN NHẮN CỦA USER
+    // USER MESSAGE
     if (widget.message.isUser) {
       return Align(
         alignment: Alignment.centerRight,
@@ -71,33 +60,61 @@ class _ChatBubbleState extends State<ChatBubble> {
           children: [
             Container(
               margin: const EdgeInsets.symmetric(vertical: 4),
-              padding: const EdgeInsets.all(12),
-              constraints: const BoxConstraints(maxWidth: 260),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              constraints: const BoxConstraints(maxWidth: 280),
               decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(16),
+                gradient: DesignTokens.primaryAccentGradient,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(4),
+                  bottomLeft: Radius.circular(20),
+                  bottomRight: Radius.circular(20),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               child: Text(
                 widget.message.text,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 15,
+                  height: 1.4,
+                ),
               ),
             ),
             if (widget.message.correction != null)
               Container(
-                margin: const EdgeInsets.only(top: 4, bottom: 8),
-                padding: const EdgeInsets.all(10),
-                constraints: const BoxConstraints(maxWidth: 260),
+                margin: const EdgeInsets.only(top: 6, bottom: 8),
+                padding: const EdgeInsets.all(12),
+                constraints: const BoxConstraints(maxWidth: 280),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF0FDF4),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.green),
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.green.shade300),
                 ),
-                child: Text(
-                  widget.message.correction!,
-                  style: const TextStyle(
-                    color: Colors.green,
-                    fontWeight: FontWeight.bold,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.auto_fix_high_rounded,
+                        size: 16, color: Colors.green.shade600),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        widget.message.correction!,
+                        style: TextStyle(
+                          color: Colors.green.shade800,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -105,124 +122,101 @@ class _ChatBubbleState extends State<ChatBubble> {
       );
     }
 
-    // TRƯỜNG HỢP 2: TIN NHẮN CỦA CHATBOT AI
+    // AI MESSAGE
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.only(bottom: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar của Bot (Giữ nguyên cấu trúc của bạn)
           Container(
-            width: 35,
-            height: 35,
+            width: 38,
+            height: 38,
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
               image: DecorationImage(
                 image: AssetImage('assets/bot_avatar.png'),
-                fit: BoxFit.contain,
+                fit: BoxFit.cover,
               ),
             ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Khung chứa nội dung tiếng Anh gốc
                 Container(
                   constraints: const BoxConstraints(maxWidth: 300),
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: const Color.fromARGB(255, 255, 255, 255),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.grey),
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(4),
+                      topRight: Radius.circular(20),
+                      bottomLeft: Radius.circular(20),
+                      bottomRight: Radius.circular(20),
+                    ),
+                    boxShadow: DesignTokens.softShadow,
                   ),
-                  child: Text(widget.message.text),
+                  child: Text(
+                    widget.message.text,
+                    style: DesignTokens.bodyStyle.copyWith(
+                      fontSize: 15,
+                      color: const Color(0xFF1E293B),
+                      height: 1.5,
+                    ),
+                  ),
                 ),
 
-                // HIỂN THỊ KHUNG BẢN DỊCH (Nếu dữ liệu đã dịch tồn tại)
                 if (widget.message.translation != null)
                   Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    padding: const EdgeInsets.all(10),
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.all(12),
                     constraints: const BoxConstraints(maxWidth: 300),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50.withOpacity(
-                        0.6,
-                      ), // Màu nền xanh nhạt dịu mắt
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.blue.shade200),
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: const Color(0xFFBFDBFE)),
                     ),
                     child: Text(
                       widget.message.translation!,
-                      style: TextStyle(
-                        color: Colors.blue.shade900,
+                      style: DesignTokens.bodyStyle.copyWith(
+                        color: const Color(0xFF1E40AF),
                         fontSize: 13,
-                        height: 1.35,
+                        height: 1.4,
                       ),
                     ),
                   ),
 
-                if (widget.message.correction != null)
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.green),
-                    ),
-                    child: Text(
-                      widget.message.correction!,
-                      style: const TextStyle(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                const SizedBox(height: 1),
-
-                // Hàng nút chức năng bổ trợ (Loa phát âm & Dịch thuật)
+                // Action Buttons Row
+                const SizedBox(height: 6),
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.volume_up,
-                        size: 18,
-                        color: Colors.grey,
-                      ),
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                      onPressed: () => _speak(widget.message.text),
+                    _buildActionBtn(
+                      icon: Icons.volume_up_rounded,
+                      color: const Color(0xFF8B5CF6),
+                      onTap: () => _speak(widget.message.text),
                     ),
-                    const SizedBox(width: 8),
-
-                    // Cấu trúc nút dịch có kiểm tra trạng thái Loading
+                    const SizedBox(width: 6),
                     _isTranslating
-                        ? const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 6),
-                            child: SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 1.8,
-                                color: Colors.grey,
-                              ),
+                        ? Container(
+                            width: 30,
+                            height: 30,
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFF8B5CF6),
                             ),
                           )
-                        : IconButton(
-                            icon: Icon(
-                              Icons.g_translate,
-                              size: 18,
-                              // Đổi icon sang màu xanh dương nếu tin nhắn này đã được dịch xong
-                              color: widget.message.translation != null
-                                  ? Colors.blue
-                                  : Colors.grey,
-                            ),
-                            constraints: const BoxConstraints(),
-                            padding: const EdgeInsets.all(4),
-                            onPressed:
-                                _handleTranslate, // Gọi hàm kích hoạt dịch thuật tự động
+                        : _buildActionBtn(
+                            icon: Icons.g_translate_rounded,
+                            color: widget.message.translation != null
+                                ? const Color(0xFF3B82F6)
+                                : Colors.grey.shade400,
+                            onTap: _handleTranslate,
                           ),
                   ],
                 ),
@@ -234,9 +228,28 @@ class _ChatBubbleState extends State<ChatBubble> {
     );
   }
 
+  Widget _buildActionBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Icon(icon, size: 16, color: color),
+      ),
+    );
+  }
+
   @override
   void dispose() {
-    _flutterTts.stop(); // Giải phóng và dừng phát âm khi widget bị hủy
+    _flutterTts.stop();
     super.dispose();
   }
 }

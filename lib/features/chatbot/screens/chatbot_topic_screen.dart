@@ -1,175 +1,6 @@
-// import 'package:flutter/material.dart';
-// import 'chat_screen.dart';
-
-// class ChatbotTopicScreen extends StatelessWidget {
-//   const ChatbotTopicScreen({super.key});
-
-//   @override
-//   Widget build(BuildContext context) {
-//     // 1. Đồng bộ chính xác danh sách Icon và Màu sắc theo Figma
-//     final topics = [
-//       'PHÒNG VẤN XIN VIỆC',
-//       'GỌI MÓN TẠI NHÀ HÀNG',
-//       'ĐẶT PHÒNG KHÁCH SẠN',
-//       'DU LỊCH & HƯỚNG DẪN',
-//       'MUA SẮM',
-//       'TRÒ CHUYỆN HÀNG NGÀY',
-//     ];
-
-//     // Thay đổi bộ Icon hệ thống bằng các Icon có dạng "Khối đặc" (Filled) để giống Figma nhất
-//     final icons = [
-//       Icons.business_center, // job
-//       Icons.restaurant, // restaurant (hoặc dùng Custom SVG nếu có)
-//       Icons.apartment, // hotel
-//       Icons.flight_takeoff, // travel
-//       Icons.local_mall, // shopping
-//       Icons.forum, // daily
-//     ];
-
-//     final buttonColors = [
-//       const Color(0xFFFF9233), // Cam phòng vấn
-//       const Color(0xFFA8A8A8), // Xám gọi món
-//       const Color(0xFF46F5F5), // Cyan đặt phòng
-//       const Color(0xFF4172F5), // Blue du lịch
-//       const Color(0xFF4CEB34), // Green mua sắm
-//       const Color(0xFF1A1A1A), // Đen trò chuyện
-//     ];
-
-//     return Scaffold(
-//       // 2. Sửa lại màu nền tổng thể thành màu xám trắng siêu nhẹ giống Figma
-//       backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-//       appBar: AppBar(
-//         title: const Text(
-//           'CHATBOT AI',
-//           style: TextStyle(
-//             fontWeight: FontWeight.bold,
-//             fontSize: 20,
-//             color: Colors.white,
-//           ),
-//         ),
-//         centerTitle: true,
-//         elevation: 0,
-//         backgroundColor: const Color(0xFF53A7FF), // Màu xanh AppBar sáng
-//         leading: IconButton(
-//           icon: const Icon(Icons.arrow_back, color: Colors.white),
-//           onPressed: () => Navigator.maybePop(context),
-//         ),
-//       ),
-//       body: ListView(
-//         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-//         children: [
-//           _buildBotIntroBubble(
-//             'Xin chào! Tôi sẽ giúp bạn luyện giao tiếp tiếng Anh cùng AI theo ngữ cảnh hiệu quả',
-//           ),
-//           const SizedBox(height: 10),
-//           _buildBotIntroBubble(
-//             'Hãy chọn một trong những chủ đề ở dưới đây để bắt đầu nhé!',
-//           ),
-
-//           const SizedBox(height: 24),
-
-//           // Danh sách các nút chọn Topic bài học
-//           ListView.separated(
-//             shrinkWrap: true,
-//             physics: const NeverScrollableScrollPhysics(),
-//             itemCount: topics.length,
-//             separatorBuilder: (_, __) => const SizedBox(height: 14),
-//             itemBuilder: (context, index) {
-//               return SizedBox(
-//                 height: 60, // Tăng nhẹ chiều cao nút cho thoáng như Figma
-//                 child: OutlinedButton(
-//                   style: OutlinedButton.styleFrom(
-//                     backgroundColor: Colors.white,
-//                     // Đổi màu viền mảnh và nhẹ hơn
-//                     side: BorderSide(color: Colors.grey.shade200, width: 1.5),
-//                     shape: RoundedRectangleBorder(
-//                       borderRadius: BorderRadius.circular(12),
-//                     ),
-//                     elevation: 1, // Tạo bóng đổ nhẹ cho nút thêm nổi bật
-//                     shadowColor: Colors.black12,
-//                   ),
-//                   onPressed: () {
-//                     Navigator.push(
-//                       context,
-//                       MaterialPageRoute(
-//                         builder: (_) => ChatScreen(topic: topics[index]),
-//                       ),
-//                     );
-//                   },
-//                   child: Padding(
-//                     padding: const EdgeInsets.symmetric(horizontal: 8),
-//                     child: Row(
-//                       children: [
-//                         // Vòng tròn chứa Icon - Đậm nét đổi màu theo từng loại danh mục
-//                         Icon(
-//                           icons[index],
-//                           color: buttonColors[index],
-//                           size: 32, // Tăng kích thước Icon lên để nhìn rõ khối
-//                         ),
-//                         const SizedBox(width: 16),
-//                         // Chữ Tiêu đề nút: Ép màu Đen Tuyền và tăng độ đậm font chữ lên tối đa
-//                         Expanded(
-//                           child: Text(
-//                             topics[index],
-//                             style: const TextStyle(
-//                               color: Colors.black, // Màu đen chữ
-//                               fontSize: 15,
-//                               fontWeight: FontWeight
-//                                   .w900, // Tăng từ w700 lên w800 để nét chữ dày dặn
-//                               letterSpacing: 0.5,
-//                             ),
-//                           ),
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 ),
-//               );
-//             },
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-
-//   // Hàm bổ trợ viết gọn gọn phần Bubble Chat của Bot đầu trang
-//   Widget _buildBotIntroBubble(String text) {
-//     return Row(
-//       crossAxisAlignment: CrossAxisAlignment.start,
-//       children: [
-//         CircleAvatar(
-//           backgroundColor: const Color(0xFFFFF3EB),
-//           radius: 18,
-//           child: Icon(
-//             Icons.sentiment_satisfied_alt,
-//             color: Colors.orange.shade700,
-//           ),
-//         ),
-//         const SizedBox(width: 10),
-//         Expanded(
-//           child: Container(
-//             padding: const EdgeInsets.all(12),
-//             decoration: BoxDecoration(
-//               color: Colors.white,
-//               borderRadius: BorderRadius.circular(12),
-//               border: Border.all(color: Colors.grey.shade100),
-//             ),
-//             child: Text(
-//               text,
-//               style: const TextStyle(
-//                 fontSize: 14,
-//                 color: Colors.black87,
-//                 height: 1.3,
-//               ),
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
+import '../../../shared/theme/design_tokens.dart';
 
 class ChatbotTopicScreen extends StatelessWidget {
   const ChatbotTopicScreen({super.key});
@@ -186,170 +17,200 @@ class ChatbotTopicScreen extends StatelessWidget {
     ];
 
     final icons = [
-      Icons.business_center,
-      Icons.restaurant,
-      Icons.apartment,
-      Icons.flight_takeoff,
-      Icons.local_mall,
-      Icons.forum,
+      Icons.business_center_rounded,
+      Icons.restaurant_rounded,
+      Icons.apartment_rounded,
+      Icons.flight_takeoff_rounded,
+      Icons.local_mall_rounded,
+      Icons.forum_rounded,
     ];
 
-    final buttonColors = [
-      const Color(0xFFFF9233), // Cam
-      const Color(0xFFA8A8A8), // Xám
-      const Color(0xFF46F5F5), // Cyan
-      const Color(0xFF4172F5), // Blue
-      const Color(0xFF4CEB34), // Green
-      const Color(0xFF1A1A1A), // Đen
+    // Accent gradients per topic
+    final List<List<Color>> gradients = [
+      [const Color(0xFFFF8C42), const Color(0xFFFF5F57)],
+      [const Color(0xFF43C6AC), const Color(0xFF3B82F6)],
+      [const Color(0xFF667EEA), const Color(0xFF764BA2)],
+      [const Color(0xFF4172F5), const Color(0xFF00C9FF)],
+      [const Color(0xFF11998E), const Color(0xFF38EF7D)],
+      [const Color(0xFF8B5CF6), const Color(0xFF3B82F6)],
     ];
 
-    return Scaffold(
-      backgroundColor: Colors.white, // Figma sử dụng nền trắng tinh tế
-      appBar: AppBar(
-        title: const Text(
-          'Chatbot AI',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-            color: Colors.white,
-          ),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: const Color(0xFF53A7FF),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.maybePop(context),
-        ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: DesignTokens.pastelBackgroundGradient,
       ),
-      body: ListView(
-        // Thiết lập padding tổng thể cho toàn màn hình theo tỷ lệ Figma
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        children: [
-          // Hai dòng tin nhắn chào mừng của Bot đầu trang
-          _buildBotIntroBubble(
-            'Xin chào! Tôi sẽ giúp bạn luyện giao tiếp tiếng Anh cùng AI theo ngữ cảnh hiệu quả',
-          ),
-          const SizedBox(height: 12),
-          _buildBotIntroBubble(
-            'Hãy chọn một trong những chủ đề ở dưới đây để bắt đầu nhé!',
-          ),
-
-          const SizedBox(height: 28),
-
-          // Khối danh sách các Topic được đẩy dịch sang phải để CĂN THẲNG HÀNG TRÁI với bong bóng tin nhắn
-          Padding(
-            // 52px = 36px (độ rộng avatar bot) + 16px (khoảng cách giữa avatar và bong bóng)
-            padding: const EdgeInsets.only(left: 52),
-            child: Align(
-              alignment:
-                  Alignment.centerLeft, // Đảm bảo khối luôn ôm sát về bên trái
-              child: SizedBox(
-                width:
-                    250, // Định giới hạn độ dài khung cố định giống hệt thiết kế Figma
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: topics.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    return SizedBox(
-                      height: 52, // Độ cao khối thu gọn vừa vặn
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          side: BorderSide(
-                            color: Colors.grey.shade200,
-                            width: 1.2,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                          elevation: 0.5,
-                          shadowColor: Colors.black12,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => ChatScreen(topic: topics[index]),
-                            ),
-                          );
-                        },
-                        child: Row(
-                          children: [
-                            Icon(
-                              icons[index],
-                              color: buttonColors[index],
-                              size: 26,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                topics[index],
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                  fontSize: 13.5,
-                                  fontWeight: FontWeight
-                                      .w800, // Độ dày chữ in đậm mạnh mẽ
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(20),
+            children: [
+              // HEADER
+              Text(
+                "AI Chatbot",
+                style: DesignTokens.headingStyle.copyWith(
+                  fontSize: 28,
+                  foreground: Paint()
+                    ..shader =
+                        DesignTokens.primaryAccentGradient.createShader(
+                      const Rect.fromLTWH(0, 0, 200, 70),
+                    ),
                 ),
               ),
-            ),
+              const SizedBox(height: 6),
+              Text(
+                "Luyện giao tiếp tiếng Anh cùng AI",
+                style: DesignTokens.bodyStyle,
+              ),
+              const SizedBox(height: 28),
+
+              // BOT GREETING
+              _buildBotIntroBubble(
+                'Xin chào! Tôi sẽ giúp bạn luyện giao tiếp tiếng Anh cùng AI theo ngữ cảnh hiệu quả 🚀',
+              ),
+              const SizedBox(height: 12),
+              _buildBotIntroBubble(
+                'Hãy chọn một trong những chủ đề ở dưới đây để bắt đầu nhé!',
+              ),
+              const SizedBox(height: 28),
+
+              // TOPIC GRID
+              Text(
+                "Chọn chủ đề",
+                style: DesignTokens.subheadingStyle.copyWith(
+                  color: const Color(0xFF334155),
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: topics.length,
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 14,
+                  childAspectRatio: 1.3,
+                ),
+                itemBuilder: (context, index) {
+                  return _buildTopicCard(
+                    context,
+                    topic: topics[index],
+                    icon: icons[index],
+                    gradientColors: gradients[index],
+                  );
+                },
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // Hàm xây dựng bong bóng chat của Bot ứng dụng hình ảnh tùy biến mới
+  Widget _buildTopicCard(
+    BuildContext context, {
+    required String topic,
+    required IconData icon,
+    required List<Color> gradientColors,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatScreen(topic: topic),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: gradientColors,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: gradientColors[0].withValues(alpha: 0.35),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: Colors.white, size: 22),
+              ),
+              Text(
+                topic,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                  height: 1.3,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildBotIntroBubble(String text) {
     return Row(
-      crossAxisAlignment:
-          CrossAxisAlignment.center, // Căn giữa avatar theo chiều dọc hộp thoại
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // THAY THẾ: Sử dụng hình ảnh tùy chọn có sẵn từ Assets thay cho icon mặt cười cũ
         Container(
-          width: 45,
-          height: 45,
+          width: 44,
+          height: 44,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             image: DecorationImage(
-              image: AssetImage(
-                'assets/bot_avatar.png',
-              ), // Đường dẫn ảnh của bạn
-              //fit: BoxFit.contain,
+              image: AssetImage('assets/bot_avatar.png'),
+              fit: BoxFit.cover,
             ),
           ),
         ),
-        const SizedBox(width: 10), // Khoảng cách chuẩn từ avatar đến hộp thoại
+        const SizedBox(width: 12),
         Expanded(
-          child: Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200, width: 1.2),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(20),
+                bottomLeft: Radius.circular(20),
+                bottomRight: Radius.circular(20),
               ),
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colors.black,
-                  fontWeight: FontWeight.w700, // Đậm đà sắc nét như figma
-                  height: 1.35,
-                ),
+              boxShadow: DesignTokens.softShadow,
+            ),
+            child: Text(
+              text,
+              style: DesignTokens.bodyStyle.copyWith(
+                fontSize: 14,
+                color: const Color(0xFF334155),
+                height: 1.5,
               ),
             ),
           ),

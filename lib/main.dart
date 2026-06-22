@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'models/bookmark_model.dart';
 import 'models/vocab_model.dart';
@@ -57,7 +58,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'News2Learn',
-
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6D28D9)), // Violet seed
+        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
+      ),
       home: const SplashScreen(),
     );
   }
