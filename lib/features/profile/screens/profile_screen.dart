@@ -61,17 +61,6 @@ class ProfileScreen extends StatelessWidget {
               children: [
                 // Profile Card Container
                 Container(
-                  // margin: const EdgeInsets.all(16.0),
-                  // padding: const EdgeInsets.all(24.0),
-                  // decoration: BoxDecoration(
-                  //   color: Colors.white.withOpacity(0.9),
-                  //   borderRadius: BorderRadius.circular(24),
-                  //   boxShadow: DesignTokens.softShadow,
-                  //   border: Border.all(
-                  //     color: Colors.white.withOpacity(0.6),
-                  //     width: 1.5,
-                  //   ),
-                  // ),
                   child: Column(
                     children: [
                       // Glowing Avatar Border
@@ -93,7 +82,7 @@ class ProfileScreen extends StatelessWidget {
                             backgroundImage: user?.photoURL != null
                                 ? NetworkImage(user!.photoURL!)
                                 : const AssetImage("assets/LOGO1.png")
-                                    as ImageProvider,
+                                      as ImageProvider,
                           ),
                         ),
                       ),

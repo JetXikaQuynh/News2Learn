@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import '../../../shared/theme/design_tokens.dart';
 import '../../articles/screens/article_list_screen.dart';
 import '../services/auth_service.dart';
 import '../widgets/auth_textfield.dart';
@@ -50,7 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
 
       body: SafeArea(
         child: SingleChildScrollView(

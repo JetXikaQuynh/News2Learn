@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'chat_screen.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../articles/screens/article_list_screen.dart';
 
 class ChatbotTopicScreen extends StatelessWidget {
   const ChatbotTopicScreen({super.key});
@@ -25,7 +26,6 @@ class ChatbotTopicScreen extends StatelessWidget {
       Icons.forum_rounded,
     ];
 
-    // Accent gradients per topic
     final List<List<Color>> gradients = [
       [const Color(0xFFFF8C42), const Color(0xFFFF5F57)],
       [const Color(0xFF43C6AC), const Color(0xFF3B82F6)],
@@ -41,23 +41,50 @@ class ChatbotTopicScreen extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
+        // --- CHỈNH SỬA TẠI ĐÂY: Sử dụng AppBar để đồng bộ nút quay lại ---
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leadingWidth: 56, // Đảm bảo khoảng cách leading chuẩn
+          leading: GestureDetector(
+            onTap: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const ArticleListScreen()),
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.only(left: 16, top: 8, bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: DesignTokens.softShadow,
+              ),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Color(0xFF334155),
+                size: 20,
+              ),
+            ),
+          ),
+          title: Text(
+            "AI Chatbot",
+            style: DesignTokens.headingStyle.copyWith(
+              fontSize: 24,
+              foreground: Paint()
+                ..shader = DesignTokens.primaryAccentGradient.createShader(
+                  const Rect.fromLTWH(0, 0, 200, 70),
+                ),
+            ),
+          ),
+          centerTitle: false,
+        ),
+        // -----------------------------------------------------------
         body: SafeArea(
           child: ListView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             children: [
-              // HEADER
-              Text(
-                "AI Chatbot",
-                style: DesignTokens.headingStyle.copyWith(
-                  fontSize: 28,
-                  foreground: Paint()
-                    ..shader =
-                        DesignTokens.primaryAccentGradient.createShader(
-                      const Rect.fromLTWH(0, 0, 200, 70),
-                    ),
-                ),
-              ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 "Luyện giao tiếp tiếng Anh cùng AI",
                 style: DesignTokens.bodyStyle,
@@ -72,7 +99,7 @@ class ChatbotTopicScreen extends StatelessWidget {
               _buildBotIntroBubble(
                 'Hãy chọn một trong những chủ đề ở dưới đây để bắt đầu nhé!',
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 32),
 
               // TOPIC GRID
               Text(
@@ -88,8 +115,7 @@ class ChatbotTopicScreen extends StatelessWidget {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: topics.length,
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
                   mainAxisSpacing: 14,
                   crossAxisSpacing: 14,
@@ -104,6 +130,7 @@ class ChatbotTopicScreen extends StatelessWidget {
                   );
                 },
               ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
@@ -111,6 +138,7 @@ class ChatbotTopicScreen extends StatelessWidget {
     );
   }
 
+  // Các hàm _buildTopicCard và _buildBotIntroBubble giữ nguyên như cũ
   Widget _buildTopicCard(
     BuildContext context, {
     required String topic,
@@ -121,9 +149,7 @@ class ChatbotTopicScreen extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => ChatScreen(topic: topic),
-          ),
+          MaterialPageRoute(builder: (_) => ChatScreen(topic: topic)),
         );
       },
       child: Container(
@@ -136,7 +162,7 @@ class ChatbotTopicScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: gradientColors[0].withValues(alpha: 0.35),
+              color: gradientColors[0].withOpacity(0.35),
               blurRadius: 15,
               offset: const Offset(0, 8),
             ),
@@ -152,7 +178,7 @@ class ChatbotTopicScreen extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.25),
+                  color: Colors.white.withOpacity(0.25),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: Colors.white, size: 22),

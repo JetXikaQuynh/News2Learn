@@ -35,18 +35,8 @@ class BookmarkScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // HEADER with back button
                     Row(
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-                          onPressed: () {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (_) => const ArticleListScreen()),
-                            );
-                          },
-                        ),
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
@@ -54,9 +44,15 @@ class BookmarkScreen extends StatelessWidget {
                             style: DesignTokens.headingStyle.copyWith(
                               fontSize: 28,
                               foreground: Paint()
-                                ..shader = DesignTokens.primaryAccentGradient.createShader(
-                                  const Rect.fromLTWH(0.0, 0.0, 300.0, 70.0),
-                                ),
+                                ..shader = DesignTokens.primaryAccentGradient
+                                    .createShader(
+                                      const Rect.fromLTWH(
+                                        0.0,
+                                        0.0,
+                                        300.0,
+                                        70.0,
+                                      ),
+                                    ),
                             ),
                           ),
                         ),
