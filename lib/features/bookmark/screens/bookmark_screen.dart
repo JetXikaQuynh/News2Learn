@@ -22,9 +22,9 @@ class BookmarkScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: ValueListenableBuilder(
-            valueListenable: bookmarkService.box.listenable(),
-            builder: (context, box, _) {
+          child: StreamBuilder(
+            stream: bookmarkService.box.watch(),
+            builder: (context, snapshot) {
               final bookmarkedIds = bookmarkService.getBookmarkedIds();
               final bookmarkedArticles = articleProvider.articles
                   .where((a) => bookmarkedIds.contains(a.articleId))

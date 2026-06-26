@@ -28,19 +28,14 @@ void main() async {
   await Hive.initFlutter();
 
   Hive.registerAdapter(BookmarkModelAdapter());
-  await Hive.openBox<BookmarkModel>('bookmarkBox');
 
   Hive.registerAdapter(VocabModelAdapter());
-  await Hive.openBox<VocabModel>('vocabBox');
 
   Hive.registerAdapter(UserModelAdapter());
-  await Hive.openBox<UserModel>('userBox');
 
   Hive.registerAdapter(UserVocabModelAdapter());
-  await Hive.openBox<UserVocabModel>('userVocabBox');
 
   Hive.registerAdapter(QuizResultModelAdapter());
-  await Hive.openBox<QuizResultModel>('quizResultBox');
 
   runApp(
     MultiProvider(

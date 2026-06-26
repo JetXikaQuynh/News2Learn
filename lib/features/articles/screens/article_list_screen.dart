@@ -92,7 +92,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
         ),
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent, // transparent to let the gradient show
+        backgroundColor:
+            Colors.transparent, // transparent to let the gradient show
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: selectedIndex,
           onTap: (index) {
@@ -112,18 +113,20 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
 
     // Filter logic
     final filteredArticles = provider.articles.where((article) {
-      final matchesSearch = article.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
+      final matchesSearch =
+          article.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
           article.description.toLowerCase().contains(searchQuery.toLowerCase());
-      
+
       if (selectedCategoryIndex == 0) {
         return matchesSearch;
       }
-      
+
       final category = categories[selectedCategoryIndex].toLowerCase();
-      final matchesCategory = article.category.toLowerCase().contains(category) ||
+      final matchesCategory =
+          article.category.toLowerCase().contains(category) ||
           article.title.toLowerCase().contains(category) ||
           article.description.toLowerCase().contains(category);
-          
+
       return matchesSearch && matchesCategory;
     }).toList();
 
@@ -191,7 +194,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        
+
                         // 🧩 CATEGORY CHIPS
                         _buildCategorySelector(),
                         const SizedBox(height: 24),
@@ -264,9 +267,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
       onTap: () async {
         await Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (_) => const ProfileScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const ProfileScreen()),
         );
         setState(() {});
       },
@@ -289,11 +290,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                   ? NetworkImage(user!.photoURL!)
                   : null,
               child: user?.photoURL == null
-                  ? const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 24,
-                    )
+                  ? const Icon(Icons.person, color: Colors.white, size: 24)
                   : null,
             ),
           ),
@@ -361,7 +358,11 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                       searchQuery = "";
                     });
                   },
-                  child: const Icon(Icons.close, color: Color(0xFF94A3B8), size: 18),
+                  child: const Icon(
+                    Icons.close,
+                    color: Color(0xFF94A3B8),
+                    size: 18,
+                  ),
                 )
               : null,
         ),
@@ -398,7 +399,9 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                 color: isSelected ? null : Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
-                  color: isSelected ? Colors.transparent : const Color(0xFFE2E8F0),
+                  color: isSelected
+                      ? Colors.transparent
+                      : const Color(0xFFE2E8F0),
                   width: 1,
                 ),
                 boxShadow: isSelected
@@ -407,7 +410,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                           color: const Color(0xFF8B5CF6).withOpacity(0.3),
                           blurRadius: 8,
                           offset: const Offset(0, 4),
-                        )
+                        ),
                       ]
                     : null,
               ),
@@ -505,12 +508,20 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) => Container(
                           color: const Color(0xFFEFF6FF),
-                          child: const Icon(Icons.broken_image_outlined, color: Colors.blue, size: 40),
+                          child: const Icon(
+                            Icons.broken_image_outlined,
+                            color: Colors.blue,
+                            size: 40,
+                          ),
                         ),
                       )
                     : Container(
                         color: const Color(0xFFEFF6FF),
-                        child: const Icon(Icons.image_outlined, color: Colors.blue, size: 40),
+                        child: const Icon(
+                          Icons.image_outlined,
+                          color: Colors.blue,
+                          size: 40,
+                        ),
                       ),
               ),
               // Gradient Overlay
@@ -533,12 +544,15 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
               Positioned(
                 top: 12,
                 right: 12,
-                child: ValueListenableBuilder(
-                  valueListenable: bookmarkService.box.listenable(),
-                  builder: (context, box, _) {
-                    final isSaved = bookmarkService.isBookmarked(article.articleId);
+                child: StreamBuilder(
+                  stream: bookmarkService.box.watch(),
+                  builder: (context, snapshot) {
+                    final isSaved = bookmarkService.isBookmarked(
+                      article.articleId,
+                    );
                     return GestureDetector(
-                      onTap: () => bookmarkService.toggleBookmark(article.articleId),
+                      onTap: () =>
+                          bookmarkService.toggleBookmark(article.articleId),
                       child: Container(
                         padding: const EdgeInsets.all(7),
                         decoration: BoxDecoration(
@@ -546,8 +560,12 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          isSaved ? Icons.bookmark : Icons.bookmark_border_rounded,
-                          color: isSaved ? const Color(0xFFEF4444) : const Color(0xFF8B5CF6),
+                          isSaved
+                              ? Icons.bookmark
+                              : Icons.bookmark_border_rounded,
+                          color: isSaved
+                              ? const Color(0xFFEF4444)
+                              : const Color(0xFF8B5CF6),
                           size: 18,
                         ),
                       ),
@@ -566,7 +584,10 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                   children: [
                     // Category Tag with glowing gradient decoration
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [Color(0xFF3B82F6), Color(0xFF8B5CF6)],
@@ -576,7 +597,9 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
-                        article.category.isNotEmpty ? article.category.toUpperCase() : "FEATURED",
+                        article.category.isNotEmpty
+                            ? article.category.toUpperCase()
+                            : "FEATURED",
                         style: const TextStyle(
                           fontSize: 9,
                           fontWeight: FontWeight.bold,
@@ -653,26 +676,27 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
     );
   }
 
- Widget _buildChatbotFab() {
-  return Positioned(
-    right: 16,
-    bottom: 16,
-    child: GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const ChatbotTopicScreen()),
-        );
-      },
-      child: Image.asset(
-        'assets/bot_avatar2.png',
-        width: 150,
-        height: 150,
-        fit: BoxFit.contain, // Đảm bảo toàn bộ ảnh được hiển thị bên trong khung
+  Widget _buildChatbotFab() {
+    return Positioned(
+      right: 16,
+      bottom: 16,
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ChatbotTopicScreen()),
+          );
+        },
+        child: Image.asset(
+          'assets/bot_avatar2.png',
+          width: 150,
+          height: 150,
+          fit: BoxFit
+              .contain, // Đảm bảo toàn bộ ảnh được hiển thị bên trong khung
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _getScreen() {
     switch (selectedIndex) {

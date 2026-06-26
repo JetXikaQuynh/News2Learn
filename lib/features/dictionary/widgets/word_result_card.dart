@@ -3,6 +3,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../models/vocab_model.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../../services/hive_service.dart';
 
 class WordResultCard extends StatelessWidget {
   final Map<String, dynamic> data;
@@ -12,7 +13,7 @@ class WordResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final box = Hive.box<VocabModel>('vocabBox');
+    final box = HiveService.instance.vocabBox;
     final player = AudioPlayer();
 
     // Nhóm các nghĩa theo Part of Speech
@@ -25,9 +26,9 @@ class WordResultCard extends StatelessWidget {
       groupedMeanings[pos]!.add(m['meaning']);
     }
 
-    return ValueListenableBuilder(
-      valueListenable: box.listenable(),
-      builder: (context, Box<VocabModel> box, _) {
+    return StreamBuilder(
+      stream: box.watch(),
+      builder: (context, snapshot) {
         final savedItemIndex = box.values.toList().indexWhere(
           (e) => e.word.toLowerCase() == word.toLowerCase(),
         );
@@ -59,7 +60,10 @@ class WordResultCard extends StatelessWidget {
                       ),
                       label: const Text(
                         "Pronounce",
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
@@ -76,7 +80,12 @@ class WordResultCard extends StatelessWidget {
                       color: isSaved ? Colors.grey.shade200 : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: isSaved ? [] : DesignTokens.softShadow,
-                      border: isSaved ? null : Border.all(color: const Color(0xFF8B5CF6), width: 1.5),
+                      border: isSaved
+                          ? null
+                          : Border.all(
+                              color: const Color(0xFF8B5CF6),
+                              width: 1.5,
+                            ),
                     ),
                     child: ElevatedButton.icon(
                       onPressed: () {
@@ -97,14 +106,20 @@ class WordResultCard extends StatelessWidget {
                         }
                       },
                       icon: Icon(
-                        isSaved ? Icons.check_circle_rounded : Icons.bookmark_add_rounded,
-                        color: isSaved ? Colors.grey.shade600 : const Color(0xFF8B5CF6),
+                        isSaved
+                            ? Icons.check_circle_rounded
+                            : Icons.bookmark_add_rounded,
+                        color: isSaved
+                            ? Colors.grey.shade600
+                            : const Color(0xFF8B5CF6),
                         size: 20,
                       ),
                       label: Text(
                         isSaved ? "Saved" : "Save Word",
                         style: TextStyle(
-                          color: isSaved ? Colors.grey.shade600 : const Color(0xFF8B5CF6),
+                          color: isSaved
+                              ? Colors.grey.shade600
+                              : const Color(0xFF8B5CF6),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -138,12 +153,17 @@ class WordResultCard extends StatelessWidget {
                       children: [
                         Text(
                           word,
-                          style: DesignTokens.headingStyle.copyWith(fontSize: 32),
+                          style: DesignTokens.headingStyle.copyWith(
+                            fontSize: 32,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         if (groupedMeanings.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             margin: const EdgeInsets.only(bottom: 6),
                             decoration: BoxDecoration(
                               color: const Color(0xFFEFF6FF),
@@ -187,7 +207,10 @@ class WordResultCard extends StatelessWidget {
                             const SizedBox(height: 12),
                             ...entry.value.asMap().entries.map((meaningEntry) {
                               return Padding(
-                                padding: const EdgeInsets.only(left: 8, bottom: 8),
+                                padding: const EdgeInsets.only(
+                                  left: 8,
+                                  bottom: 8,
+                                ),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [

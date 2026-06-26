@@ -4,13 +4,14 @@ import 'package:audioplayers/audioplayers.dart';
 
 import '../../../models/vocab_model.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../../services/hive_service.dart';
 
 class VocabularyScreen extends StatelessWidget {
   const VocabularyScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final box = Hive.box<VocabModel>('vocabBox');
+    final box = HiveService.instance.vocabBox;
     final player = AudioPlayer();
 
     return Container(
@@ -31,22 +32,24 @@ class VocabularyScreen extends StatelessWidget {
                   style: DesignTokens.headingStyle.copyWith(
                     fontSize: 28,
                     foreground: Paint()
-                      ..shader =
-                          DesignTokens.primaryAccentGradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 250.0, 70.0),
-                      ),
+                      ..shader = DesignTokens.primaryAccentGradient
+                          .createShader(
+                            const Rect.fromLTWH(0.0, 0.0, 250.0, 70.0),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 6),
-                ValueListenableBuilder(
-                  valueListenable: box.listenable(),
-                  builder: (context, Box<VocabModel> box, _) {
+                StreamBuilder(
+                  stream: box.watch(),
+                  builder: (context, snapshot) {
                     final count = box.values.length;
                     return Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             gradient: DesignTokens.primaryAccentGradient,
                             borderRadius: BorderRadius.circular(20),
@@ -74,9 +77,9 @@ class VocabularyScreen extends StatelessWidget {
 
                 // WORD LIST
                 Expanded(
-                  child: ValueListenableBuilder(
-                    valueListenable: box.listenable(),
-                    builder: (context, Box<VocabModel> box, _) {
+                  child: StreamBuilder(
+                    stream: box.watch(),
+                    builder: (context, snapshot) {
                       final vocabList = box.values.toList();
 
                       if (vocabList.isEmpty) {
@@ -84,19 +87,24 @@ class VocabularyScreen extends StatelessWidget {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.book_outlined,
-                                  size: 72, color: Colors.grey.shade300),
+                              Icon(
+                                Icons.book_outlined,
+                                size: 72,
+                                color: Colors.grey.shade300,
+                              ),
                               const SizedBox(height: 16),
                               Text(
                                 "Chưa có từ nào",
                                 style: DesignTokens.subheadingStyle.copyWith(
-                                    color: Colors.grey.shade400),
+                                  color: Colors.grey.shade400,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 "Tìm kiếm từ trong từ điển và lưu lại nhé!",
                                 style: DesignTokens.bodyStyle.copyWith(
-                                    color: Colors.grey.shade400),
+                                  color: Colors.grey.shade400,
+                                ),
                                 textAlign: TextAlign.center,
                               ),
                             ],
@@ -108,8 +116,7 @@ class VocabularyScreen extends StatelessWidget {
                         itemCount: vocabList.length,
                         itemBuilder: (context, index) {
                           final vocab = vocabList[index];
-                          return _buildItem(
-                              context, vocab, index, player, box);
+                          return _buildItem(context, vocab, index, player, box);
                         },
                       );
                     },
@@ -179,7 +186,9 @@ class VocabularyScreen extends StatelessWidget {
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 2),
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: accent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -208,8 +217,11 @@ class VocabularyScreen extends StatelessWidget {
                             color: accent.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Icon(Icons.volume_up_rounded,
-                              size: 17, color: accent),
+                          child: Icon(
+                            Icons.volume_up_rounded,
+                            size: 17,
+                            color: accent,
+                          ),
                         ),
                       ),
                     ],
@@ -245,7 +257,8 @@ class VocabularyScreen extends StatelessWidget {
                     backgroundColor: const Color(0xFF8B5CF6),
                     behavior: SnackBarBehavior.floating,
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 );
               },
@@ -257,8 +270,11 @@ class VocabularyScreen extends StatelessWidget {
                   color: Colors.red.shade50,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.delete_outline_rounded,
-                    color: Colors.red.shade400, size: 18),
+                child: Icon(
+                  Icons.delete_outline_rounded,
+                  color: Colors.red.shade400,
+                  size: 18,
+                ),
               ),
             ),
           ],

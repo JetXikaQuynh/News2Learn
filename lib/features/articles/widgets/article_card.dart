@@ -103,9 +103,9 @@ class ArticleCard extends StatelessWidget {
                       ),
                     ),
                     // BOOKMARK ICON
-                    ValueListenableBuilder(
-                      valueListenable: bookmarkService.box.listenable(),
-                      builder: (context, box, _) {
+                    StreamBuilder(
+                      stream: bookmarkService.box.watch(),
+                      builder: (context, snapshot) {
                         final isSaved = bookmarkService.isBookmarked(
                           article.articleId,
                         );
@@ -317,9 +317,9 @@ class ArticleCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    ValueListenableBuilder(
-                      valueListenable: bookmarkService.box.listenable(),
-                      builder: (context, box, _) {
+                    StreamBuilder(
+                      stream: bookmarkService.box.watch(),
+                      builder: (context, snapshot) {
                         final isSaved = bookmarkService.isBookmarked(
                           article.articleId,
                         );

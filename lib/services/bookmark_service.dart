@@ -1,43 +1,43 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/bookmark_model.dart';
+import 'hive_service.dart';
+import 'sync_service.dart';
 
 class BookmarkService {
-  final box = Hive.box<BookmarkModel>('bookmarkBox');
+  get box => HiveService.instance.bookmarkBox;
 
-  final String userId = "user_1"; // giả lập user
+  String get uid => FirebaseAuth.instance.currentUser!.uid;
 
-  // kiểm tra đã lưu chưa
   bool isBookmarked(String articleId) {
-    return box.values.any(
-      (b) => b.articleId == articleId && b.userId == userId,
-    );
+    return box.values.any((b) => b.articleId == articleId);
   }
 
-  // bấm bookmark
-  void toggleBookmark(String articleId) {
-    final key = box.keys.firstWhere((k) {
+  Future<void> toggleBookmark(String articleId) async {
+    final key = box.keys.cast<dynamic>().firstWhere((k) {
       final b = box.get(k);
-      return b!.articleId == articleId && b.userId == userId;
+
+      return b!.articleId == articleId;
     }, orElse: () => null);
 
     if (key != null) {
-      box.delete(key);
+      await box.delete(key);
     } else {
-      box.add(
+      await box.add(
         BookmarkModel(
           bmId: DateTime.now().millisecondsSinceEpoch.toString(),
-          userId: userId,
+
+          userId: uid,
+
           articleId: articleId,
         ),
       );
     }
+
+    // Đồng bộ lên cloud nếu có kết nối
+    await SyncService.instance.syncToCloud();
   }
 
-  // lấy danh sách article đã lưu
   List<String> getBookmarkedIds() {
-    return box.values
-        .where((b) => b.userId == userId)
-        .map((b) => b.articleId)
-        .toList();
+    return box.values.map((e) => e.articleId as String).toList().cast<String>();
   }
 }

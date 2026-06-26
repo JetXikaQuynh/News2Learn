@@ -8,6 +8,7 @@ import '../../../services/rss_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../services/dictionary_service.dart';
 import '../../../services/translation_service.dart';
+import '../../../services/hive_service.dart';
 
 class ArticleDetailScreen extends StatefulWidget {
   final Article article;
@@ -217,7 +218,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   // 🔥 CONTENT + HIGHLIGHT WORD
   Widget _buildContent(BuildContext context, String text) {
-    final vocabBox = Hive.box<VocabModel>('vocabBox');
+    final vocabBox = HiveService.instance.vocabBox;
     final savedWords = vocabBox.values.map((e) => e.word.toLowerCase()).toSet();
     final words = text.split(' ');
 
@@ -534,7 +535,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   // 📚 POPUP TỪ VỰNG
   void _showVocabPopup(BuildContext context, String word) async {
-    final box = Hive.box<VocabModel>('vocabBox');
+    final box = HiveService.instance.vocabBox;
 
     // Popup loading
     showDialog(

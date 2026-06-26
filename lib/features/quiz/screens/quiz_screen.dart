@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -10,6 +11,8 @@ import '../../../shared/theme/design_tokens.dart';
 
 import '../widgets/quiz_body.dart';
 import '../screens/quiz_result_srceen.dart';
+import '../../../services/hive_service.dart';
+import '../../../services/quiz_service.dart';
 
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
@@ -35,8 +38,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
 
-    final box = Hive.box<VocabModel>('vocabBox');
-
+    final box = HiveService.instance.vocabBox;
     allWords = box.values.toList();
 
     generateQuiz();
@@ -85,7 +87,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     final currentVocab = quizWords[currentQuestion];
 
-    final uvBox = Hive.box<UserVocabModel>('userVocabBox');
+    final uvBox = HiveService.instance.userVocabBox;
 
     final existingIndex = uvBox.values.toList().indexWhere(
       (e) => e.vocabId == currentVocab.vocabId,
@@ -162,12 +164,13 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   Future<void> saveQuizResult() async {
-    final resultBox = Hive.box<QuizResultModel>('quizResultBox');
+    final quizService = QuizService();
+    final userId = FirebaseAuth.instance.currentUser?.uid ?? "guest_user";
 
-    await resultBox.add(
+    await quizService.saveQuizResult(
       QuizResultModel(
         qrId: DateTime.now().millisecondsSinceEpoch.toString(),
-        userId: "guest_user",
+        userId: userId,
         score: score,
         totalQuestions: quizWords.length,
         correctCount: score,

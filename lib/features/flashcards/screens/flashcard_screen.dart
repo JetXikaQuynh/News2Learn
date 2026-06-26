@@ -4,6 +4,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'dart:math';
 import '../../../models/vocab_model.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../../services/hive_service.dart';
 
 class FlashcardScreen extends StatefulWidget {
   const FlashcardScreen({super.key});
@@ -24,7 +25,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   @override
   void initState() {
     super.initState();
-    final box = Hive.box<VocabModel>('vocabBox');
+    final box = HiveService.instance.vocabBox;
     flashcards = box.values.toList();
   }
 
@@ -67,7 +68,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
   }
 
   void resetCards() {
-    final box = Hive.box<VocabModel>('vocabBox');
+    final box = HiveService.instance.vocabBox;
     setState(() {
       flashcards = box.values.toList();
       currentIndex = 0;
@@ -88,18 +89,24 @@ class _FlashcardScreenState extends State<FlashcardScreen>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.style_rounded, size: 72, color: Colors.grey.shade300),
+                Icon(
+                  Icons.style_rounded,
+                  size: 72,
+                  color: Colors.grey.shade300,
+                ),
                 const SizedBox(height: 20),
                 Text(
                   "Chưa có thẻ flashcard",
-                  style: DesignTokens.subheadingStyle
-                      .copyWith(color: Colors.grey.shade400),
+                  style: DesignTokens.subheadingStyle.copyWith(
+                    color: Colors.grey.shade400,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   "Hãy lưu từ vựng từ từ điển để bắt đầu!",
-                  style: DesignTokens.bodyStyle
-                      .copyWith(color: Colors.grey.shade400),
+                  style: DesignTokens.bodyStyle.copyWith(
+                    color: Colors.grey.shade400,
+                  ),
                 ),
               ],
             ),
@@ -136,11 +143,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                           style: DesignTokens.headingStyle.copyWith(
                             fontSize: 28,
                             foreground: Paint()
-                              ..shader =
-                                  DesignTokens.primaryAccentGradient
-                                      .createShader(
-                                const Rect.fromLTWH(0, 0, 200, 70),
-                              ),
+                              ..shader = DesignTokens.primaryAccentGradient
+                                  .createShader(
+                                    const Rect.fromLTWH(0, 0, 200, 70),
+                                  ),
                           ),
                         ),
                         Text(
@@ -184,7 +190,8 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                       value: progress,
                       backgroundColor: Colors.transparent,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                          Color(0xFF8B5CF6)),
+                        Color(0xFF8B5CF6),
+                      ),
                     ),
                   ),
                 ),
@@ -196,8 +203,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                   child: GestureDetector(
                     onTap: toggleCard,
                     child: TweenAnimationBuilder(
-                      tween: Tween<double>(
-                          begin: 0, end: showMeaning ? 1 : 0),
+                      tween: Tween<double>(begin: 0, end: showMeaning ? 1 : 0),
                       duration: const Duration(milliseconds: 450),
                       builder: (context, double value, child) {
                         final angle = value * pi;
@@ -210,8 +216,7 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                               ? _buildFrontCard(vocab)
                               : Transform(
                                   alignment: Alignment.center,
-                                  transform: Matrix4.identity()
-                                    ..rotateY(pi),
+                                  transform: Matrix4.identity()..rotateY(pi),
                                   child: _buildBackCard(vocab),
                                 ),
                         );
@@ -239,8 +244,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         flashcards.length > 7 ? 7 : flashcards.length,
                         (i) {
                           final dotIndex = flashcards.length > 7
-                              ? (currentIndex - 3 + i)
-                                  .clamp(0, flashcards.length - 1)
+                              ? (currentIndex - 3 + i).clamp(
+                                  0,
+                                  flashcards.length - 1,
+                                )
                               : i;
                           final isActive = dotIndex == currentIndex;
                           return Container(
@@ -274,8 +281,11 @@ class _FlashcardScreenState extends State<FlashcardScreen>
     );
   }
 
-  Widget _buildControlBtn(IconData icon, VoidCallback onTap,
-      {required String tooltip}) {
+  Widget _buildControlBtn(
+    IconData icon,
+    VoidCallback onTap, {
+    required String tooltip,
+  }) {
     return Tooltip(
       message: tooltip,
       child: GestureDetector(
@@ -318,16 +328,22 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                 ? [
                     Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
                     const SizedBox(width: 6),
-                    Text(label,
-                        style: DesignTokens.bodyStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155))),
+                    Text(
+                      label,
+                      style: DesignTokens.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF334155),
+                      ),
+                    ),
                   ]
                 : [
-                    Text(label,
-                        style: DesignTokens.bodyStyle.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155))),
+                    Text(
+                      label,
+                      style: DesignTokens.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF334155),
+                      ),
+                    ),
                     const SizedBox(width: 6),
                     Icon(icon, color: const Color(0xFF8B5CF6), size: 20),
                   ],
@@ -363,7 +379,10 @@ class _FlashcardScreenState extends State<FlashcardScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   gradient: DesignTokens.primaryAccentGradient,
                   borderRadius: BorderRadius.circular(20),
@@ -404,8 +423,11 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                         color: const Color(0xFFEFF6FF),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.volume_up_rounded,
-                          size: 22, color: Color(0xFF3B82F6)),
+                      child: const Icon(
+                        Icons.volume_up_rounded,
+                        size: 22,
+                        color: Color(0xFF3B82F6),
+                      ),
                     ),
                   ),
                 ],
@@ -423,13 +445,18 @@ class _FlashcardScreenState extends State<FlashcardScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.touch_app_rounded,
-                      size: 18, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.touch_app_rounded,
+                    size: 18,
+                    color: Colors.grey.shade400,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     "Nhấn để xem nghĩa",
                     style: DesignTokens.bodyStyle.copyWith(
-                        color: Colors.grey.shade400, fontSize: 15),
+                      color: Colors.grey.shade400,
+                      fontSize: 15,
+                    ),
                   ),
                 ],
               ),
