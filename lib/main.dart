@@ -60,7 +60,9 @@ class MyApp extends StatelessWidget {
       title: 'News2Learn',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6D28D9)), // Violet seed
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF6D28D9),
+        ), // Violet seed
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
       ),
       home: const SplashScreen(),

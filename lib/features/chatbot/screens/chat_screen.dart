@@ -3,6 +3,10 @@ import '../models/chat_message.dart';
 import '../../../services/ai_service.dart';
 import '../../../shared/theme/design_tokens.dart';
 import '../widgets/chat_bubble.dart';
+import 'package:record/record.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'dart:io' as io;
 
 class ChatScreen extends StatefulWidget {
   final String topic;
@@ -20,6 +24,99 @@ class _ChatScreenState extends State<ChatScreen> {
 
   List<ChatMessage> messages = [];
   bool isLoading = false;
+
+  final AudioRecorder _audioRecorder = AudioRecorder();
+  bool _isRecording = false;
+  bool _isTranscribing = false;
+
+  //- bắt đầu thu âm từ micro
+  Future<void> _startVoiceInput() async {
+    try {
+      final hasPermission = await _audioRecorder.hasPermission();
+      if (!hasPermission) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Chưa cấp quyền Microphone")),
+        );
+        return;
+      }
+
+      setState(() {
+        _isRecording = true;
+      });
+
+      final config = const RecordConfig(
+        encoder: AudioEncoder
+            .aacLc, //- sử dụng aac cho nhẹ và tương thích đa nền tảng
+        sampleRate: 16000,
+        numChannels: 1,
+      );
+
+      await _audioRecorder.start(config, path: '');
+    } catch (e) {
+      debugPrint("Lỗi khởi động ghi âm: $e");
+      setState(() {
+        _isRecording = false;
+      });
+    }
+  }
+
+  //- dừng thu âm và nhận dạng giọng nói sang tiếng anh
+  Future<void> _stopVoiceInput() async {
+    try {
+      final path = await _audioRecorder.stop();
+      if (path == null) {
+        setState(() {
+          _isRecording = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _isRecording = false;
+        _isTranscribing = true;
+      });
+
+      Uint8List audioBytes;
+      if (kIsWeb) {
+        //- đọc bytes của blob file trên web
+        final response = await http.get(Uri.parse(path));
+        audioBytes = response.bodyBytes;
+      } else {
+        //- đọc file trên mobile
+        final file = io.File(path);
+        audioBytes = await file.readAsBytes();
+      }
+
+      //- gửi lên gemini thực hiện transcribe & translate sang tiếng anh
+      final text = await _aiService.transcribeAndTranslateAudio(
+        audioBytes,
+        'audio/aac',
+      );
+
+      if (text.isNotEmpty) {
+        setState(() {
+          _controller.text = text;
+        });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Không nhận dạng được âm thanh")),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("Lỗi dừng thu âm/STT: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text("Lỗi xử lý âm thanh: $e")));
+      }
+    } finally {
+      setState(() {
+        _isTranscribing = false;
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -43,8 +140,7 @@ class _ChatScreenState extends State<ChatScreen> {
         setState(() {
           messages.add(
             ChatMessage(
-              text:
-                  "Hello! Welcome to our session about ${widget.topic}.",
+              text: "Hello! Welcome to our session about ${widget.topic}.",
               isUser: false,
             ),
           );
@@ -120,8 +216,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: DesignTokens.softShadow,
               ),
-              child: const Icon(Icons.arrow_back_rounded,
-                  color: Color(0xFF334155), size: 20),
+              child: const Icon(
+                Icons.arrow_back_rounded,
+                color: Color(0xFF334155),
+                size: 20,
+              ),
             ),
           ),
           title: Column(
@@ -155,8 +254,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: DesignTokens.softShadow,
               ),
-              child: const Icon(Icons.more_vert_rounded,
-                  color: Color(0xFF334155), size: 20),
+              child: const Icon(
+                Icons.more_vert_rounded,
+                color: Color(0xFF334155),
+                size: 20,
+              ),
             ),
           ],
         ),
@@ -165,8 +267,10 @@ class _ChatScreenState extends State<ChatScreen> {
             Expanded(
               child: ListView.builder(
                 controller: _scrollController,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 itemCount: messages.length,
                 itemBuilder: (context, index) {
                   return ChatBubble(message: messages[index]);
@@ -176,8 +280,10 @@ class _ChatScreenState extends State<ChatScreen> {
 
             if (isLoading)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Row(
@@ -197,7 +303,9 @@ class _ChatScreenState extends State<ChatScreen> {
                       const SizedBox(width: 10),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 12),
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: const BorderRadius.only(
@@ -237,16 +345,45 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: Row(
                   children: [
                     const SizedBox(width: 4),
-                    Container(
-                      width: 40,
-                      height: 40,
-                      margin: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(14),
+                    GestureDetector(
+                      onTap: () {
+                        if (_isTranscribing) return;
+                        if (_isRecording) {
+                          _stopVoiceInput();
+                        } else {
+                          _startVoiceInput();
+                        }
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        margin: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _isRecording
+                              ? Colors.red.shade100
+                              : const Color(0xFFF1F5F9),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: _isTranscribing
+                            ? const Padding(
+                                padding: EdgeInsets.all(10),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Color(0xFF8B5CF6),
+                                  ),
+                                ),
+                              )
+                            : Icon(
+                                _isRecording
+                                    ? Icons.stop_rounded
+                                    : Icons.mic_rounded,
+                                color: _isRecording
+                                    ? Colors.red
+                                    : const Color(0xFF8B5CF6),
+                                size: 20,
+                              ),
                       ),
-                      child: const Icon(Icons.mic_rounded,
-                          color: Color(0xFF8B5CF6), size: 20),
                     ),
                     Expanded(
                       child: TextField(
@@ -257,12 +394,20 @@ class _ChatScreenState extends State<ChatScreen> {
                           color: const Color(0xFF1E293B),
                         ),
                         decoration: InputDecoration(
-                          hintText: "Nhập tin nhắn...",
+                          hintText: _isRecording
+                              ? "Đang lắng nghe... bấm nút vuông để dừng"
+                              : _isTranscribing
+                              ? "Đang nhận dạng giọng nói..."
+                              : "Nhập tin nhắn...",
                           hintStyle: DesignTokens.bodyStyle.copyWith(
-                              color: Colors.grey.shade400, fontSize: 15),
+                            color: Colors.grey.shade400,
+                            fontSize: 15,
+                          ),
                           border: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 14),
+                            horizontal: 8,
+                            vertical: 14,
+                          ),
                         ),
                       ),
                     ),
@@ -274,8 +419,11 @@ class _ChatScreenState extends State<ChatScreen> {
                         boxShadow: DesignTokens.accentShadow,
                       ),
                       child: IconButton(
-                        icon: const Icon(Icons.send_rounded,
-                            color: Colors.white, size: 20),
+                        icon: const Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                         onPressed: sendMessage,
                       ),
                     ),
@@ -313,6 +461,7 @@ class _ChatScreenState extends State<ChatScreen> {
   void dispose() {
     _controller.dispose();
     _scrollController.dispose();
+    _audioRecorder.dispose();
     super.dispose();
   }
 }

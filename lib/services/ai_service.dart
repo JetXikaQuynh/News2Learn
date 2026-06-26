@@ -2,6 +2,8 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+import 'dart:typed_data';
+
 class AIService {
   static String get apiKey => dotenv.env['GEMINI_API_KEY'] ?? "";
 
@@ -9,6 +11,30 @@ class AIService {
     model: 'gemini-3.1-flash-lite',
     apiKey: apiKey,
   );
+
+  //- chuyển giọng nói thành văn bản tiếng anh (dịch nếu nói tiếng việt)
+  Future<String> transcribeAndTranslateAudio(
+    Uint8List audioBytes,
+    String mimeType,
+  ) async {
+    try {
+      final response = await model.generateContent([
+        Content.multi([
+          DataPart(mimeType, audioBytes),
+          TextPart(
+            "Listen to this audio. "
+            "If the audio is in English, transcribe it precisely into English text. "
+            "If the audio is in Vietnamese, translate it naturally into English. "
+            "Only output the final English transcription/translation. Do not include any explanations, markers, or notes. If you cannot hear anything, return an empty string.",
+          ),
+        ]),
+      ]);
+      return (response.text ?? "").trim();
+    } catch (e) {
+      print("Lỗi nhận dạng âm thanh: $e");
+      return "";
+    }
+  }
 
   ChatSession? _chat;
 
