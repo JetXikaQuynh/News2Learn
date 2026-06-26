@@ -7,8 +7,7 @@ import '../../../models/vocab_model.dart';
 import '../../../services/rss_service.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../../../services/dictionary_service.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import '../../../services/translation_service.dart';
 
 class ArticleDetailScreen extends StatefulWidget {
   final Article article;
@@ -20,9 +19,12 @@ class ArticleDetailScreen extends StatefulWidget {
 }
 
 class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
-  OverlayEntry? _overlayEntry;
   String fullContent = "";
+  String _translatedArticleContent = "";
   bool isLoading = true;
+  bool _isTranslatingArticle = false;
+  bool _isArticleTranslated = false;
+  List<String> _sentences = [];
 
   @override
   void initState() {
@@ -36,14 +38,41 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     setState(() {
       fullContent = content;
       isLoading = false;
+      _splitSentences(content);
     });
+  }
+
+  void _splitSentences(String text) {
+    if (text.isEmpty) return;
+    final sentenceRegex = RegExp(r'(?<=[.!?])\s+|\n+');
+    _sentences = text
+        .split(sentenceRegex)
+        .where((s) => s.trim().isNotEmpty)
+        .toList();
+  }
+
+  String _findSentenceContainingWord(String word) {
+    final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
+    for (final sentence in _sentences) {
+      final sentenceWords = sentence
+          .split(RegExp(r'\s+'))
+          .map((w) => w.replaceAll(RegExp(r'[^\w]'), '').toLowerCase());
+      if (sentenceWords.contains(cleanWord)) {
+        return sentence.trim();
+      }
+    }
+    return word;
   }
 
   @override
   Widget build(BuildContext context) {
-    final displayText = fullContent.isNotEmpty
+    final originalText = fullContent.isNotEmpty
         ? fullContent
         : widget.article.description;
+    final displayText =
+        _isArticleTranslated && _translatedArticleContent.isNotEmpty
+        ? _translatedArticleContent
+        : originalText;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FB),
@@ -120,9 +149,11 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                                 color: const Color(0xFFFFD99F),
                               ),
                             ),
-                            child: const Text(
-                              "💡 Mẹo: Hãy nhấn vào từ để tra nghĩa và lưu từ đó vào danh sách từ vựng",
-                              style: TextStyle(fontSize: 13),
+                            child: Text(
+                              _isArticleTranslated
+                                  ? "💡 Bài báo đang hiển thị tiếng Việt. Nhấn vào nút để xem bản gốc và sử dụng chức năng dịch từ/câu."
+                                  : "💡 Mẹo: Nhấn 1 lần vào từ để tra nghĩa và nhấn 2 lần để dịch cả câu",
+                              style: const TextStyle(fontSize: 13),
                             ),
                           ),
 
@@ -136,7 +167,20 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                           // 🤖 BUTTON
                           Center(
                             child: ElevatedButton(
-                              onPressed: () {},
+                              onPressed: _isTranslatingArticle
+                                  ? null
+                                  : () {
+                                      if (_isArticleTranslated) {
+                                        setState(() {
+                                          _isArticleTranslated = false;
+                                        });
+                                        return;
+                                      }
+                                      _showArticleTranslation(
+                                        context,
+                                        originalText,
+                                      );
+                                    },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4F8EFC),
                                 padding: const EdgeInsets.symmetric(
@@ -147,9 +191,17 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: const Text(
-                                "⭐ Generate AI Summary",
-                                style: TextStyle(color: Colors.white),
+                              child: Text(
+                                _isTranslatingArticle
+                                    ? 'Đang dịch...'
+                                    : _isArticleTranslated
+                                    ? 'XEM BẢN GỐC'
+                                    : '⭐ DỊCH CẢ BÀI BÁO',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
                               ),
                             ),
                           ),
@@ -165,21 +217,27 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
   // 🔥 CONTENT + HIGHLIGHT WORD
   Widget _buildContent(BuildContext context, String text) {
-    final words = text.split(" ");
-
     final vocabBox = Hive.box<VocabModel>('vocabBox');
     final savedWords = vocabBox.values.map((e) => e.word.toLowerCase()).toSet();
+    final words = text.split(' ');
 
     return Wrap(
       children: words.map((word) {
         final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
-
         final isSaved = savedWords.contains(cleanWord);
 
         return GestureDetector(
-          onTap: () {
-            _showVocabPopup(context, cleanWord);
-          },
+          onTap: _isArticleTranslated
+              ? null
+              : () {
+                  if (cleanWord.isNotEmpty) _showVocabPopup(context, cleanWord);
+                },
+          onDoubleTap: _isArticleTranslated
+              ? null
+              : () {
+                  final sentence = _findSentenceContainingWord(word);
+                  _showSentenceTranslation(context, sentence);
+                },
           child: Container(
             margin: const EdgeInsets.only(right: 4, bottom: 6),
             padding: isSaved
@@ -204,6 +262,276 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     );
   }
 
+  // Dịch toàn bộ bài báo và hiển thị ngay trên trang
+  Future<void> _showArticleTranslation(
+    BuildContext context,
+    String text,
+  ) async {
+    if (text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không có nội dung để dịch')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isTranslatingArticle = true;
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    final translated = await TranslationService().translateToVi(text);
+
+    if (!context.mounted) return;
+    Navigator.pop(context);
+    setState(() {
+      _isTranslatingArticle = false;
+    });
+
+    if (translated.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Không thể dịch bài báo này')),
+      );
+      return;
+    }
+
+    setState(() {
+      _translatedArticleContent = translated;
+      _isArticleTranslated = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Bài báo đã được dịch sang tiếng Việt')),
+    );
+  }
+
+  // Hiển thị bản dịch câu
+  Future<void> _showSentenceTranslation(
+    BuildContext context,
+    String sentence,
+  ) async {
+    // show loading dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) =>
+          const Center(child: CircularProgressIndicator(color: Colors.orange)),
+    );
+
+    final translated = await TranslationService().translateToVi(sentence);
+
+    if (!context.mounted) return;
+    Navigator.pop(context); // close loading
+
+    if (translated.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Không thể dịch câu này')));
+      return;
+    }
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) {
+        return Container(
+          margin: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(38),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF4F8EFC), Color(0xFF2563EB)],
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.translate, color: Colors.white, size: 24),
+                    const SizedBox(width: 10),
+                    const Expanded(
+                      child: Text(
+                        'Dịch câu',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.pop(context),
+                      child: const Icon(Icons.close, color: Colors.white),
+                    ),
+                  ],
+                ),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Original
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.blue[200]!, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.language,
+                                size: 18,
+                                color: Colors.blue[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Original (English)',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue[600],
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            sentence,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Arrow
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          Icons.arrow_downward,
+                          color: Colors.orange[600],
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Vietnamese
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green[200]!, width: 1),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle,
+                                size: 18,
+                                color: Colors.green[600],
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Vietnamese',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[600],
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            translated,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              color: Colors.black87,
+                              height: 1.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Close Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF4F8EFC),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'ĐÓNG',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   // 📚 POPUP TỪ VỰNG
   void _showVocabPopup(BuildContext context, String word) async {
     final box = Hive.box<VocabModel>('vocabBox');
@@ -217,6 +545,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     );
 
     final data = await DictionaryService().fetchWord(word);
+    if (!context.mounted) return;
     Navigator.pop(context); // Đóng loading
 
     if (data == null) {
@@ -299,7 +628,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                     const SizedBox(height: 15),
 
                     // Hiển thị danh sách các loại từ và nghĩa
-                    ...(data["meanings"] as List).map((m) {
+                    ...((data["meanings"] as List).map((m) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Column(
@@ -323,7 +652,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    })),
 
                     const Divider(height: 30),
                     //NÚT LƯU / XÓA
