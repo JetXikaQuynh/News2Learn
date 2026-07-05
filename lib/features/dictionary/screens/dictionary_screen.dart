@@ -46,15 +46,15 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 🔥 TITLE
                 Text(
                   "Dictionary",
                   style: DesignTokens.headingStyle.copyWith(
                     fontSize: 28,
                     foreground: Paint()
-                      ..shader = DesignTokens.primaryAccentGradient.createShader(
-                        const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
-                      ),
+                      ..shader = DesignTokens.primaryAccentGradient
+                          .createShader(
+                            const Rect.fromLTWH(0.0, 0.0, 200.0, 70.0),
+                          ),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -64,7 +64,6 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                 ),
                 const SizedBox(height: 24),
 
-                // 🔍 SEARCH BAR
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.8),
@@ -78,16 +77,24 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                         child: TextField(
                           controller: _controller,
                           style: DesignTokens.bodyStyle.copyWith(
-                              fontSize: 16, color: Colors.black87),
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
                           decoration: InputDecoration(
                             hintText: "Enter a word...",
                             hintStyle: DesignTokens.bodyStyle.copyWith(
-                                color: Colors.grey.shade400, fontSize: 16),
-                            prefixIcon: const Icon(Icons.search,
-                                color: Color(0xFF8B5CF6)),
+                              color: Colors.grey.shade400,
+                              fontSize: 16,
+                            ),
+                            prefixIcon: const Icon(
+                              Icons.search,
+                              color: Color(0xFF8B5CF6),
+                            ),
                             border: InputBorder.none,
                             contentPadding: const EdgeInsets.symmetric(
-                                vertical: 16, horizontal: 20),
+                              vertical: 16,
+                              horizontal: 20,
+                            ),
                           ),
                           onSubmitted: (_) => _search(),
                         ),
@@ -100,8 +107,10 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                           boxShadow: DesignTokens.accentShadow,
                         ),
                         child: IconButton(
-                          icon: const Icon(Icons.arrow_forward_rounded,
-                              color: Colors.white),
+                          icon: const Icon(
+                            Icons.arrow_forward_rounded,
+                            color: Colors.white,
+                          ),
                           onPressed: _search,
                         ),
                       ),
@@ -111,20 +120,22 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
 
                 const SizedBox(height: 24),
 
-                // 📊 RESULT
                 if (isLoading)
                   const Expanded(
                     child: Center(
                       child: CircularProgressIndicator(
                         valueColor: AlwaysStoppedAnimation<Color>(
-                            Color(0xFF8B5CF6)),
+                          Color(0xFF8B5CF6),
+                        ),
                       ),
                     ),
                   )
                 else if (result != null)
                   Expanded(
                     child: WordResultCard(
-                        data: result!, word: _controller.text),
+                      data: result!,
+                      word: _controller.text,
+                    ),
                   )
                 else
                   Expanded(
@@ -132,13 +143,17 @@ class _DictionaryScreenState extends State<DictionaryScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.menu_book_rounded,
-                              size: 64, color: Colors.grey.shade300),
+                          Icon(
+                            Icons.menu_book_rounded,
+                            size: 64,
+                            color: Colors.grey.shade300,
+                          ),
                           const SizedBox(height: 16),
                           Text(
                             "Nhập từ vựng cần tra cứu ở ô bên trên!",
-                            style: DesignTokens.bodyStyle
-                                .copyWith(color: Colors.grey.shade500),
+                            style: DesignTokens.bodyStyle.copyWith(
+                              color: Colors.grey.shade500,
+                            ),
                           ),
                         ],
                       ),

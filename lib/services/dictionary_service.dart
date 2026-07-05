@@ -13,14 +13,12 @@ class DictionaryService {
       final data = jsonDecode(res.body);
       final dictData = data[0];
 
-      // Lấy danh sách nghĩa theo loại từ (Noun, Verb...)
       List<Map<String, String>> structuredMeanings = [];
 
       for (var m in dictData["meanings"]) {
         String pos = m["partOfSpeech"] ?? "word";
         String defEn = m["definitions"][0]["definition"] ?? "";
 
-        // Dịch nghĩa của loại từ đó
         String defVi = await translateToVietnamese(defEn);
 
         structuredMeanings.add({"pos": pos, "meaning": defVi});
@@ -39,7 +37,7 @@ class DictionaryService {
       }
 
       return {
-        "meanings": structuredMeanings, // Trả về list nghĩa
+        "meanings": structuredMeanings,
         "phonetic": phonetic,
         "audio": audio,
       };

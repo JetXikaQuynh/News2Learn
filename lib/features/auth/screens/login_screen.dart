@@ -54,11 +54,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: DesignTokens
-            .pastelBackgroundGradient, //- hình nền gradient đồng bộ nhẹ nhàng
+        gradient: DesignTokens.pastelBackgroundGradient,
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent, //- trong suốt để hiện nền gradient
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -67,8 +66,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const SizedBox(height: 20),
-
-                  //- bọc logo bo góc tròn tinh tế hơn
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
@@ -81,7 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 32),
 
-                  //- tiêu đề dùng text gradient cực kỳ cao cấp
                   Text(
                     "ĐĂNG NHẬP",
                     style: TextStyle(
@@ -97,9 +93,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 12),
 
                   Text(
-                    "Nhập email và mật khẩu của bạn để tiếp tục",
+                    "Nhập email và mật khẩu để tiếp tục",
                     style: DesignTokens.bodyStyle.copyWith(
-                      color: const Color(0xFF64748B), //- Slate 500
+                      color: const Color(0xFF64748B),
                     ),
                   ),
 
@@ -120,7 +116,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 16),
 
-                  //- nút đăng nhập màu gradient kèm bóng đổ tím
                   Container(
                     width: double.infinity,
                     height: 56,
@@ -161,7 +156,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 32),
 
-                  //- liên kết chuyển sang màn hình đăng ký
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -183,9 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         child: Text(
                           " Đăng ký ngay",
                           style: DesignTokens.bodyStyle.copyWith(
-                            color: const Color(
-                              0xFF8B5CF6,
-                            ), //- màu tím Violet 500
+                            color: const Color(0xFF8B5CF6),
                             fontWeight: FontWeight.bold,
                           ),
                         ),

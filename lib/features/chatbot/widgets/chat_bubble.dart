@@ -21,7 +21,7 @@ class _ChatBubbleState extends State<ChatBubble> {
   Future<void> _speak(String text) async {
     try {
       await _flutterTts.setLanguage("en-US");
-      await _flutterTts.setSpeechRate(0.6);
+      await _flutterTts.setSpeechRate(0.45);
       await _flutterTts.setPitch(1.0);
       await _flutterTts.speak(text);
     } catch (e) {
@@ -36,8 +36,7 @@ class _ChatBubbleState extends State<ChatBubble> {
       _isTranslating = true;
     });
 
-    final result =
-        await _translationService.translateToVi(widget.message.text);
+    final result = await _translationService.translateToVi(widget.message.text);
 
     if (mounted) {
       setState(() {
@@ -100,8 +99,11 @@ class _ChatBubbleState extends State<ChatBubble> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.auto_fix_high_rounded,
-                        size: 16, color: Colors.green.shade600),
+                    Icon(
+                      Icons.auto_fix_high_rounded,
+                      size: 16,
+                      color: Colors.green.shade600,
+                    ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -187,7 +189,6 @@ class _ChatBubbleState extends State<ChatBubble> {
                     ),
                   ),
 
-                // Action Buttons Row
                 const SizedBox(height: 6),
                 Row(
                   children: [

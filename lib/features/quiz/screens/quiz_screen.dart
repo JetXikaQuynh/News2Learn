@@ -33,6 +33,7 @@ class _QuizScreenState extends State<QuizScreen> {
   int correctIndex = 0;
 
   List<String> options = [];
+  bool isFinished = false;
 
   @override
   void initState() {
@@ -145,21 +146,9 @@ class _QuizScreenState extends State<QuizScreen> {
     } else {
       saveQuizResult();
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizResultScreen(
-            score: score,
-            totalQuestions: quizWords.length,
-            onRestart: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const QuizScreen()),
-              );
-            },
-          ),
-        ),
-      );
+      setState(() {
+        isFinished = true;
+      });
     }
   }
 
@@ -181,6 +170,19 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (isFinished) {
+      return QuizResultScreen(
+        score: score,
+        totalQuestions: quizWords.length,
+        onRestart: () {
+          setState(() {
+            isFinished = false;
+            generateQuiz();
+          });
+        },
+      );
+    }
+
     if (allWords.length < 4) {
       return Container(
         decoration: const BoxDecoration(

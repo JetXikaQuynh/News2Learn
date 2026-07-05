@@ -7,7 +7,6 @@ import '../models/article_model.dart';
 import 'package:html/parser.dart' as parser;
 
 class RssService {
-  // final String _url = "https://feeds.bbci.co.uk/news/world/rss.xml";
   final String _url = "https://feeds.nbcnews.com/nbcnews/public/world";
   //hàm lấy dữ liệu từ RSS feed, parse và trả về ds Article.
   Future<List<Article>> fetchArticles() async {
@@ -20,7 +19,6 @@ class RssService {
 
       final feed = RssFeed.parse(response.body);
 
-      // ⚠️ tránh null crash
       final items = feed.items ?? [];
 
       return items.map((item) {
@@ -53,7 +51,6 @@ class RssService {
 
       final document = parser.parse(response.body);
 
-      // 1. Try structured JSON-LD first (many sites expose articleBody here)
       final jsonLdScripts = document.querySelectorAll(
         'script[type="application/ld+json"]',
       );
@@ -79,12 +76,9 @@ class RssService {
           if (articleBody != null && articleBody.trim().isNotEmpty) {
             return articleBody.trim();
           }
-        } catch (_) {
-          // ignore invalid JSON in script tags
-        }
+        } catch (_) {}
       }
 
-      // 2. Fallback to known HTML selectors
       final selectors = [
         'div[data-component="text-block"]',
         'div[data-testid="article-body"]',
@@ -124,14 +118,12 @@ class RssService {
     return null;
   }
 
-  // 🔧 Lấy ảnh từ RSS item
+  // Lấy ảnh từ RSS item
   String _getImage(RssItem item) {
-    // 🔹 1. media:thumbnail (BBC hay dùng)
     if (item.media?.thumbnails != null && item.media!.thumbnails!.isNotEmpty) {
       return item.media!.thumbnails!.first.url ?? "";
     }
 
-    // 🔹 2. enclosure
     if (item.enclosure != null) {
       return item.enclosure!.url ?? "";
     }
@@ -139,7 +131,7 @@ class RssService {
     return "";
   }
 
-  // 🔧 Xóa HTML tag trong description
+  //Xóa HTML tag trong description
   String _cleanHtml(String htmlText) {
     return htmlText.replaceAll(RegExp(r'<[^>]*>'), '');
   }

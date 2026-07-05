@@ -35,8 +35,8 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
     "Business",
   ];
 
-  int selectedIndex = 0; // Bottom nav index
-  int selectedCategoryIndex = 0; // Category index
+  int selectedIndex = 0;
+  int selectedCategoryIndex = 0;
   final TextEditingController searchController = TextEditingController();
   String searchQuery = "";
 
@@ -82,18 +82,13 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Color(0xFFF1F5F9), // Soft slate
-            Color(0xFFEFF6FF), // Soft cyan
-            Color(0xFFF5F3FF), // Soft lavender
-          ],
+          colors: [Color(0xFFF1F5F9), Color(0xFFEFF6FF), Color(0xFFF5F3FF)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Scaffold(
-        backgroundColor:
-            Colors.transparent, // transparent to let the gradient show
+        backgroundColor: Colors.transparent,
         bottomNavigationBar: CustomBottomNavBar(
           currentIndex: selectedIndex,
           onTap: (index) {
@@ -111,7 +106,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
     final provider = Provider.of<ArticleProvider>(context);
     final user = FirebaseAuth.instance.currentUser;
 
-    // Filter logic
     final filteredArticles = provider.articles.where((article) {
       final matchesSearch =
           article.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
@@ -130,7 +124,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
       return matchesSearch && matchesCategory;
     }).toList();
 
-    // Partition: First 3 as Featured if search is empty, the rest as Latest
     final showFeatured = searchQuery.isEmpty && selectedCategoryIndex == 0;
     final List<Article> featured = showFeatured && filteredArticles.length > 3
         ? filteredArticles.take(3).toList()
@@ -153,37 +146,12 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 🏷️ HEADER LOGO & ICON
-                        // Row(
-                        //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        //   children: [
-                        //     Image.asset("assets/LOGO1.png", height: 44),
-                        //     Container(
-                        //       padding: const EdgeInsets.all(8),
-                        //       decoration: BoxDecoration(
-                        //         color: Colors.white,
-                        //         shape: BoxShape.circle,
-                        //         border: Border.all(color: const Color(0xFFE2E8F0)),
-                        //       ),
-                        //       child: const Icon(
-                        //         Icons.notifications_none_rounded,
-                        //         color: Color(0xFF64748B),
-                        //         size: 20,
-                        //       ),
-                        //     ),
-                        //   ],
-                        // ),
-                        //const SizedBox(height: 20),
-
-                        // 👤 GREETING HEADER
                         _buildGreetingHeader(user),
                         const SizedBox(height: 20),
 
-                        // 🔍 SEARCH
                         _buildSearchBar(),
                         const SizedBox(height: 20),
 
-                        // 🧩 CATEGORIES TITLE
                         const Text(
                           "Categories",
                           style: TextStyle(
@@ -195,17 +163,14 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                         ),
                         const SizedBox(height: 10),
 
-                        // 🧩 CATEGORY CHIPS
                         _buildCategorySelector(),
                         const SizedBox(height: 24),
 
-                        // 🏆 FEATURED SECTION (Scale active PageView)
                         if (showFeatured && featured.isNotEmpty) ...[
                           _buildFeaturedCarousel(featured),
                           const SizedBox(height: 28),
                         ],
 
-                        // 📰 FEED HEADER
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -233,7 +198,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                         ),
                         const SizedBox(height: 14),
 
-                        // 📰 MAGAZINE-STYLE ALTERNATING FEED LIST
                         latest.isEmpty
                             ? _buildEmptyState()
                             : ListView.builder(
@@ -241,8 +205,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: latest.length,
                                 itemBuilder: (context, index) {
-                                  // Alternating layout: every 3rd card is rendered as a Large Vertical Card (isListStyle: false)
-                                  // The rest are compact list cards (isListStyle: true)
                                   final isHero = (index % 3 == 0);
                                   return ArticleCard(
                                     article: latest[index],
@@ -256,7 +218,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                 ),
         ),
 
-        // 🤖 sleek chatbot welcome pill bubble overlay
         _buildChatbotFab(),
       ],
     );
@@ -500,7 +461,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
           borderRadius: BorderRadius.circular(20),
           child: Stack(
             children: [
-              // Image
               Positioned.fill(
                 child: article.imageUrl.isNotEmpty
                     ? Image.network(
@@ -582,7 +542,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Category Tag with glowing gradient decoration
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -691,8 +650,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
           'assets/bot_avatar2.png',
           width: 150,
           height: 150,
-          fit: BoxFit
-              .contain, // Đảm bảo toàn bộ ảnh được hiển thị bên trong khung
+          fit: BoxFit.contain,
         ),
       ),
     );

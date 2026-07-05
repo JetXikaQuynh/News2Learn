@@ -18,13 +18,10 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 🔧 LOAD ENV VARIABLES
   await dotenv.load(fileName: ".env");
 
-  // 🔥 FIREBASE
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // 🔥 HIVE
   await Hive.initFlutter();
 
   Hive.registerAdapter(BookmarkModelAdapter());
@@ -55,9 +52,7 @@ class MyApp extends StatelessWidget {
       title: 'News2Learn',
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF6D28D9),
-        ), // Violet seed
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6D28D9)),
         textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme),
       ),
       home: const SplashScreen(),

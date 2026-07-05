@@ -88,7 +88,6 @@ class BookmarkScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 20),
 
-                    // CONTENT
                     Expanded(
                       child: bookmarkedArticles.isEmpty
                           ? Center(
@@ -124,7 +123,6 @@ class BookmarkScreen extends StatelessWidget {
                                     crossAxisCount: 2,
                                     mainAxisSpacing: 12,
                                     crossAxisSpacing: 12,
-                                    // Lower aspect ratio -> allocate more height for each tile
                                     childAspectRatio: 0.60,
                                   ),
                               itemBuilder: (context, index) {

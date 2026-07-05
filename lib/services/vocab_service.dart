@@ -9,7 +9,7 @@ class VocabService {
     return box.values.any((e) => e.word == word);
   }
 
-  /// Lưu từ vựng và sync lên cloud
+  /// Lưu từ vựng và sync
   Future<void> saveWord(VocabModel vocab) async {
     if (!isSaved(vocab.word)) {
       box.add(vocab);
@@ -21,7 +21,6 @@ class VocabService {
   /// Xóa từ vựng và sync
   Future<void> deleteWord(int index) async {
     await box.deleteAt(index);
-    // Đồng bộ lên cloud nếu có kết nối
     await SyncService.instance.syncToCloud();
   }
 }

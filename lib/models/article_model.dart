@@ -21,7 +21,6 @@ class Article {
     this.aiSummary,
   });
 
-  // 🔁 Convert từ JSON (Firestore hoặc API)
   factory Article.fromJson(Map<String, dynamic> json) {
     return Article(
       articleId: json['articleId'],
@@ -36,7 +35,6 @@ class Article {
     );
   }
 
-  // 🔁 Convert sang JSON (lưu DB)
   Map<String, dynamic> toJson() {
     return {
       'articleId': articleId,

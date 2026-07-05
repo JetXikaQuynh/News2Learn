@@ -19,7 +19,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool isLoading = false;
   bool obscurePassword = true;
 
-  //- kiểm tra tính hợp lệ của họ tên và gmail
   String? _validateNameAndEmail(String name, String email) {
     final trimmedName = name.trim();
     final trimmedEmail = email.trim();
@@ -115,11 +114,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        gradient:
-            DesignTokens.pastelBackgroundGradient, //- hình nền gradient mượt mà
+        gradient: DesignTokens.pastelBackgroundGradient,
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent, //- trong suốt để hiện nền gradient
+        backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -129,7 +127,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 children: [
                   const SizedBox(height: 20),
 
-                  //- logo bo góc đồng nhất màn Login
                   ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: Image.asset(
@@ -142,7 +139,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 32),
 
-                  //- tiêu đề chữ gradient cao cấp
                   Text(
                     "ĐĂNG KÝ",
                     style: TextStyle(
@@ -187,7 +183,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 16),
 
-                  //- nút đăng ký gradient có bóng đổ
                   Container(
                     width: double.infinity,
                     height: 56,
@@ -228,7 +223,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                   const SizedBox(height: 32),
 
-                  //- liên kết chuyển sang màn đăng nhập
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [

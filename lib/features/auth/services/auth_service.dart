@@ -20,13 +20,10 @@ class AuthService {
 
       await _auth.currentUser?.updateDisplayName(name);
 
-      // mở Hive của user
       await HiveService.instance.openUserBoxes();
 
-      // tạo document user trên Firestore
       await FirestoreService.instance.createUser(email: email, name: name);
 
-      // upload dữ liệu local (lần đầu gần như rỗng)
       await FirestoreService.instance.uploadAll();
 
       return null;
@@ -42,7 +39,6 @@ class AuthService {
     }
   }
 
-  // LOGIN
   Future<String?> login({
     required String email,
     required String password,
@@ -50,10 +46,8 @@ class AuthService {
     try {
       await _auth.signInWithEmailAndPassword(email: email, password: password);
 
-      // mở đúng Hive của user
       await HiveService.instance.openUserBoxes();
 
-      // Đồng bộ từ cloud (prioritize cloud data)
       await SyncService.instance.syncFromCloud();
 
       return null;
@@ -69,7 +63,6 @@ class AuthService {
     }
   }
 
-  // LOGOUT
   Future<void> logout() async {
     await HiveService.instance.closeUserBoxes();
     await _auth.signOut();

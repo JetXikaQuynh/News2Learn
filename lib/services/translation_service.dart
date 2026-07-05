@@ -2,9 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class TranslationService {
-  /// Translate [text] to Vietnamese using the unofficial Google translate endpoint.
-  /// This does not require an API key but may be rate-limited or change.
-  /// Returns translated text or empty string on error.
   Future<String> translateToVi(String text) async {
     try {
       final encoded = Uri.encodeComponent(text);
@@ -16,7 +13,6 @@ class TranslationService {
 
       final body = resp.body;
       final data = json.decode(body) as dynamic;
-      // Response structure is nested arrays. First element contains translated chunks.
       if (data is List && data.isNotEmpty && data[0] is List) {
         final parts = data[0] as List;
         final buffer = StringBuffer();

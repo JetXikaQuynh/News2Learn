@@ -1,7 +1,10 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../../services/hive_service.dart';
+import '../../../models/quiz_result_model.dart';
 
 class StatisticsScreen extends StatefulWidget {
   const StatisticsScreen({super.key});
@@ -14,52 +17,91 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
-  // Dữ liệu mẫu lịch sử Quiz
-  final List<Map<String, dynamic>> quizHistory = [
-    {
-      "title": "Quiz 8",
-      "score": "18/20 câu đúng",
-      "percent": 90,
-      "date": "23/05/2026",
-      "rank": "Xuất sắc",
-      "color": const Color(0xFF10B981), // Emerald
-    },
-    {
-      "title": "Quiz 7",
-      "score": "10/20 câu đúng",
-      "percent": 50,
-      "date": "22/05/2026",
-      "rank": "Khá",
-      "color": const Color(0xFFF59E0B), // Amber
-    },
-    {
-      "title": "Quiz 6",
-      "score": "25/30 câu đúng",
-      "percent": 80,
-      "date": "22/05/2026",
-      "rank": "Tốt",
-      "color": const Color(0xFF3B82F6), // Blue
-    },
-    {
-      "title": "Quiz 5",
-      "score": "10/30 câu đúng",
-      "percent": 33,
-      "date": "19/04/2026",
-      "rank": "Cần cố gắng",
-      "color": const Color(0xFFEF4444), // Red
-    },
-  ];
+  List<QuizResultModel> _quizResults = [];
+  int _totalVocab = 0;
+  int _learnedVocab = 0;
+
+  int get _totalQuizzes => _quizResults.length;
+
+  double get _avgPercent {
+    if (_quizResults.isEmpty) return 0;
+    final sum = _quizResults.fold<double>(
+      0,
+      (s, r) =>
+          s +
+          (r.totalQuestions > 0 ? r.correctCount / r.totalQuestions * 100 : 0),
+    );
+    return sum / _quizResults.length;
+  }
+
+  QuizResultModel? get _bestResult {
+    if (_quizResults.isEmpty) return null;
+    return _quizResults.reduce((a, b) {
+      final pA = a.totalQuestions > 0 ? a.correctCount / a.totalQuestions : 0;
+      final pB = b.totalQuestions > 0 ? b.correctCount / b.totalQuestions : 0;
+      return pA >= pB ? a : b;
+    });
+  }
+
+  int _countByTier(int min, int max) => _quizResults.where((r) {
+    if (r.totalQuestions == 0) return false;
+    final p = (r.correctCount / r.totalQuestions * 100).round();
+    return p >= min && p <= max;
+  }).length;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadData();
+  }
+
+  void _loadData() {
+    try {
+      final hive = HiveService.instance;
+      _quizResults = hive.quizResultBox.values.toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt)); // mới nhất trước
+      _totalVocab = hive.vocabBox.length;
+      _learnedVocab = hive.userVocabBox.values.where((v) => v.isLearned).length;
+    } catch (_) {
+      // boxes chưa mở
+    }
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Map<String, dynamic> _toHistoryMap(QuizResultModel r, int index) {
+    final percent = r.totalQuestions > 0
+        ? (r.correctCount / r.totalQuestions * 100).round()
+        : 0;
+    String rank;
+    Color color;
+    if (percent >= 90) {
+      rank = "Xuất sắc";
+      color = const Color(0xFF10B981);
+    } else if (percent >= 80) {
+      rank = "Tốt";
+      color = const Color(0xFF3B82F6);
+    } else if (percent >= 50) {
+      rank = "Khá";
+      color = const Color(0xFFF59E0B);
+    } else {
+      rank = "Cần cố gắng";
+      color = const Color(0xFFEF4444);
+    }
+    return {
+      "title": "Quiz ${_quizResults.length - index}",
+      "score": "${r.correctCount}/${r.totalQuestions} câu đúng",
+      "percent": percent,
+      "date": DateFormat('dd/MM/yyyy').format(r.createdAt),
+      "rank": rank,
+      "color": color,
+    };
   }
 
   @override
@@ -76,7 +118,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.9),
+              backgroundColor: Colors.white.withValues(alpha: 0.9),
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_rounded,
@@ -105,13 +147,12 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               children: [
                 const SizedBox(height: 10),
 
-                // 1. Dashboard Row: Số bài quiz & Tỷ lệ đạt
                 Row(
                   children: [
                     Expanded(
                       child: _buildDashboardCard(
                         title: "Số bài Quiz",
-                        value: "7",
+                        value: "$_totalQuizzes",
                         subtitle: "Đã hoàn thành",
                         icon: Icons.assignment_turned_in_rounded,
                         color: const Color(0xFF3B82F6),
@@ -120,9 +161,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildDashboardCard(
-                        title: "Tỷ lệ đạt",
-                        value: "85%",
-                        subtitle: "Làm đúng trung bình",
+                        title: "Tỷ lệ đúng TB",
+                        value: _totalQuizzes > 0
+                            ? "${_avgPercent.round()}%"
+                            : "—",
+                        subtitle: "Trung bình các bài",
                         icon: Icons.track_changes_rounded,
                         color: const Color(0xFF10B981),
                       ),
@@ -131,15 +174,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
                 const SizedBox(height: 12),
 
-                // 2. Full Width Card: Từ vựng đã học
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: DesignTokens.softShadow,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       width: 1.5,
                     ),
                   ),
@@ -154,7 +196,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF8B5CF6).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF8B5CF6,
+                                  ).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -175,7 +219,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                             ],
                           ),
                           Text(
-                            "9 / 30",
+                            _totalVocab > 0
+                                ? "$_learnedVocab / $_totalVocab"
+                                : "Chưa có dữ liệu",
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -187,11 +233,13 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       const SizedBox(height: 12),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(6),
-                        child: const LinearProgressIndicator(
-                          value: 9 / 30,
+                        child: LinearProgressIndicator(
+                          value: _totalVocab > 0
+                              ? _learnedVocab / _totalVocab
+                              : 0,
                           minHeight: 10,
-                          backgroundColor: Color(0xFFF1F5F9),
-                          valueColor: AlwaysStoppedAnimation<Color>(
+                          backgroundColor: const Color(0xFFF1F5F9),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
                             Color(0xFF8B5CF6),
                           ),
                         ),
@@ -201,12 +249,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
                 const SizedBox(height: 16),
 
-                // 3. Custom Segment Control TabBar
                 Container(
                   height: 48,
                   padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.8),
+                    color: Colors.white.withValues(alpha: 0.8),
                     borderRadius: BorderRadius.circular(14),
                     boxShadow: DesignTokens.softShadow,
                   ),
@@ -218,7 +265,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       gradient: DesignTokens.primaryAccentGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF8B5CF6).withOpacity(0.2),
+                          color: const Color(0xFF8B5CF6).withValues(alpha: 0.2),
                           blurRadius: 6,
                           offset: const Offset(0, 3),
                         ),
@@ -242,28 +289,42 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
                 const SizedBox(height: 12),
 
-                // 4. Tab Bar View Content
                 Expanded(
                   child: TabBarView(
                     controller: _tabController,
                     children: [
-                      // Tab 1: Quiz History
-                      quizHistory.isEmpty
+                      _quizResults.isEmpty
                           ? Center(
-                              child: Text(
-                                "Chưa có lịch sử làm bài",
-                                style: GoogleFonts.inter(color: Colors.grey),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.quiz_outlined,
+                                    size: 56,
+                                    color: Color(0xFFCBD5E1),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    "Chưa có lịch sử làm bài",
+                                    style: GoogleFonts.inter(
+                                      color: const Color(0xFF94A3B8),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
                             )
                           : ListView.builder(
                               physics: const BouncingScrollPhysics(),
-                              itemCount: quizHistory.length,
+                              itemCount: _quizResults.length,
                               itemBuilder: (context, index) {
-                                return _buildQuizHistoryCard(quizHistory[index]);
+                                return _buildQuizHistoryCard(
+                                  _toHistoryMap(_quizResults[index], index),
+                                );
                               },
                             ),
 
-                      // Tab 2: Achievements
                       _buildAchievementTab(),
                     ],
                   ),
@@ -276,7 +337,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // --- WIDGET DASHBOARD CARD ---
   Widget _buildDashboardCard({
     required String title,
     required String value,
@@ -287,11 +347,11 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(20),
         boxShadow: DesignTokens.softShadow,
         border: Border.all(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           width: 1.5,
         ),
       ),
@@ -312,7 +372,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 16),
@@ -342,8 +402,77 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // --- TAB THÀNH TÍCH WIDGET ---
   Widget _buildAchievementTab() {
+    if (_totalQuizzes == 0) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.emoji_events_outlined,
+              size: 56,
+              color: Color(0xFFCBD5E1),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              "Làm quiz để xem thành tích của bạn",
+              style: GoogleFonts.inter(
+                color: const Color(0xFF94A3B8),
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final best = _bestResult!;
+    final bestPercent = best.totalQuestions > 0
+        ? (best.correctCount / best.totalQuestions * 100).round()
+        : 0;
+
+    final countExcellent = _countByTier(90, 100);
+    final countGood = _countByTier(80, 89);
+    final countOk = _countByTier(50, 79);
+    final countPoor = _countByTier(0, 49);
+
+    List<PieChartSectionData> sections = [];
+    void addSection(int count, Color color, String label) {
+      if (count == 0) return;
+      final pct = (count / _totalQuizzes * 100).round();
+      sections.add(
+        PieChartSectionData(
+          color: color,
+          value: count.toDouble(),
+          title: '$pct%',
+          radius: 20,
+          titleStyle: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+      );
+    }
+
+    addSection(countExcellent, const Color(0xFF10B981), 'Xuất sắc');
+    addSection(countGood, const Color(0xFF3B82F6), 'Tốt');
+    addSection(countOk, const Color(0xFFF59E0B), 'Khá');
+    addSection(countPoor, const Color(0xFFEF4444), 'Cần cố gắng');
+
+    if (sections.isEmpty) {
+      sections.add(
+        PieChartSectionData(
+          color: const Color(0xFFE2E8F0),
+          value: 1,
+          title: '',
+          radius: 20,
+        ),
+      );
+    }
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
@@ -351,7 +480,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         children: [
           const SizedBox(height: 8),
 
-          // High Score Card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -362,7 +490,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
               ),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
@@ -398,7 +526,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       textBaseline: TextBaseline.alphabetic,
                       children: [
                         Text(
-                          "90%",
+                          "$bestPercent%",
                           style: GoogleFonts.inter(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -407,9 +535,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          "(Quiz 8)",
+                          "(${best.correctCount}/${best.totalQuestions} câu · ${DateFormat('dd/MM/yyyy').format(best.createdAt)})",
                           style: GoogleFonts.inter(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: const Color(0xFF3B82F6),
                             fontWeight: FontWeight.w500,
                           ),
@@ -423,15 +551,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
           const SizedBox(height: 20),
 
-          // Pie Chart Block
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(24),
               boxShadow: DesignTokens.softShadow,
               border: Border.all(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 width: 1.5,
               ),
             ),
@@ -454,7 +581,6 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
                 const SizedBox(height: 24),
 
-                // 📊 KHU VỰC VẼ BIỂU ĐỒ TRÒN (DONUT CHART)
                 SizedBox(
                   height: 160,
                   child: Stack(
@@ -465,59 +591,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                           sectionsSpace: 3,
                           centerSpaceRadius: 50,
                           startDegreeOffset: -90,
-                          sections: [
-                            PieChartSectionData(
-                              color: const Color(0xFF10B981), // Xuất sắc
-                              value: 14,
-                              title: '14%',
-                              radius: 20,
-                              titleStyle: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            PieChartSectionData(
-                              color: const Color(0xFF3B82F6), // Tốt
-                              value: 57,
-                              title: '57%',
-                              radius: 20,
-                              titleStyle: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            PieChartSectionData(
-                              color: const Color(0xFFF59E0B), // Khá
-                              value: 20,
-                              title: '20%',
-                              radius: 20,
-                              titleStyle: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            PieChartSectionData(
-                              color: const Color(0xFFEF4444), // Tệ
-                              value: 9,
-                              title: '9%',
-                              radius: 20,
-                              titleStyle: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                          sections: sections,
                         ),
                       ),
                       Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "85%",
+                            "${_avgPercent.round()}%",
                             style: GoogleFonts.inter(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
@@ -539,16 +620,21 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 ),
                 const SizedBox(height: 20),
 
-                // Legends
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   alignment: WrapAlignment.center,
                   children: [
-                    _buildLegendChip("Xuất sắc (≥90%)", const Color(0xFF10B981)),
+                    _buildLegendChip(
+                      "Xuất sắc (≥90%)",
+                      const Color(0xFF10B981),
+                    ),
                     _buildLegendChip("Tốt (80-89%)", const Color(0xFF3B82F6)),
                     _buildLegendChip("Khá (50-79%)", const Color(0xFFF59E0B)),
-                    _buildLegendChip("Cần cố gắng (<50%)", const Color(0xFFEF4444)),
+                    _buildLegendChip(
+                      "Cần cố gắng (<50%)",
+                      const Color(0xFFEF4444),
+                    ),
                   ],
                 ),
               ],
@@ -556,15 +642,14 @@ class _StatisticsScreenState extends State<StatisticsScreen>
           ),
           const SizedBox(height: 20),
 
-          // Detail Progress Bars Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(24),
               boxShadow: DesignTokens.softShadow,
               border: Border.all(
-                color: Colors.white.withOpacity(0.6),
+                color: Colors.white.withValues(alpha: 0.6),
                 width: 1.5,
               ),
             ),
@@ -589,26 +674,26 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                 const SizedBox(height: 16),
                 _buildDetailProgressBar(
                   "Xuất sắc (≥90%)",
-                  "1 bài",
-                  1 / 7,
+                  "$countExcellent bài",
+                  _totalQuizzes > 0 ? countExcellent / _totalQuizzes : 0,
                   const Color(0xFF10B981),
                 ),
                 _buildDetailProgressBar(
                   "Tốt (80-89%)",
-                  "4 bài",
-                  4 / 7,
+                  "$countGood bài",
+                  _totalQuizzes > 0 ? countGood / _totalQuizzes : 0,
                   const Color(0xFF3B82F6),
                 ),
                 _buildDetailProgressBar(
                   "Khá (50-79%)",
-                  "2 bài",
-                  2 / 7,
+                  "$countOk bài",
+                  _totalQuizzes > 0 ? countOk / _totalQuizzes : 0,
                   const Color(0xFFF59E0B),
                 ),
                 _buildDetailProgressBar(
                   "Cần cố gắng (<50%)",
-                  "0 bài",
-                  0 / 7,
+                  "$countPoor bài",
+                  _totalQuizzes > 0 ? countPoor / _totalQuizzes : 0,
                   const Color(0xFFEF4444),
                 ),
               ],
@@ -620,17 +705,16 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     );
   }
 
-  // --- OTHER BUILD METHOD HELPERS ---
   Widget _buildQuizHistoryCard(Map<String, dynamic> item) {
     final rankColor = item["color"] as Color;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(16),
         boxShadow: DesignTokens.softShadow,
         border: Border.all(
-          color: Colors.white.withOpacity(0.6),
+          color: Colors.white.withValues(alpha: 0.6),
           width: 1,
         ),
       ),
@@ -638,12 +722,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
         borderRadius: BorderRadius.circular(16),
         child: Container(
           decoration: BoxDecoration(
-            border: Border(
-              left: BorderSide(
-                color: rankColor,
-                width: 6,
-              ),
-            ),
+            border: Border(left: BorderSide(color: rankColor, width: 6)),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
@@ -708,7 +787,7 @@ class _StatisticsScreenState extends State<StatisticsScreen>
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: rankColor.withOpacity(0.1),
+                      color: rankColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -733,9 +812,9 @@ class _StatisticsScreenState extends State<StatisticsScreen>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

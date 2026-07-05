@@ -37,7 +37,8 @@ class _FlashcardScreenState extends State<FlashcardScreen>
 
   void toggleCard() {
     setState(() {
-      showMeaning = !showMeaning;
+      showMeaning =
+          !showMeaning; //khi showMeaning = true thì hiển thị nghĩa, khi showMeaning = false thì hiển thị từ vựng
     });
   }
 
@@ -176,7 +177,6 @@ class _FlashcardScreenState extends State<FlashcardScreen>
 
                 const SizedBox(height: 16),
 
-                // PROGRESS BAR
                 Container(
                   height: 8,
                   decoration: BoxDecoration(
@@ -198,7 +198,6 @@ class _FlashcardScreenState extends State<FlashcardScreen>
 
                 const SizedBox(height: 28),
 
-                // FLASHCARD
                 Expanded(
                   child: GestureDetector(
                     onTap: toggleCard,
@@ -227,7 +226,6 @@ class _FlashcardScreenState extends State<FlashcardScreen>
 
                 const SizedBox(height: 24),
 
-                // NAVIGATION
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -238,7 +236,6 @@ class _FlashcardScreenState extends State<FlashcardScreen>
                       enabled: currentIndex > 0,
                       isLeft: true,
                     ),
-                    // Dots indicator
                     Row(
                       children: List.generate(
                         flashcards.length > 7 ? 7 : flashcards.length,

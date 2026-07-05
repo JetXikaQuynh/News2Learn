@@ -16,7 +16,6 @@ class WordResultCard extends StatelessWidget {
     final box = HiveService.instance.vocabBox;
     final player = AudioPlayer();
 
-    // Nhóm các nghĩa theo Part of Speech
     final Map<String, List<String>> groupedMeanings = {};
     for (var m in (data["meanings"] as List)) {
       String pos = m['pos'] ?? 'unknown';
@@ -38,7 +37,6 @@ class WordResultCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 🔊 BUTTONS
               Row(
                 children: [
                   Container(
@@ -137,7 +135,6 @@ class WordResultCard extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // 🧠 WORD CARD
               Container(
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
@@ -191,7 +188,6 @@ class WordResultCard extends StatelessWidget {
 
                     const Divider(height: 32, color: Color(0xFFF1F5F9)),
 
-                    // 🇻🇳 MEANING LIST
                     ...groupedMeanings.entries.map((entry) {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 16.0),
@@ -243,7 +239,6 @@ class WordResultCard extends StatelessWidget {
                 ),
               ),
 
-              // Thêm khoảng trống ở cuối để không bị sát thanh điều hướng
               const SizedBox(height: 50),
             ],
           ),

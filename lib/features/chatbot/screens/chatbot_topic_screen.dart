@@ -41,11 +41,10 @@ class ChatbotTopicScreen extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        // --- CHỈNH SỬA TẠI ĐÂY: Sử dụng AppBar để đồng bộ nút quay lại ---
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
-          leadingWidth: 56, // Đảm bảo khoảng cách leading chuẩn
+          leadingWidth: 56,
           leading: GestureDetector(
             onTap: () {
               Navigator.pushReplacement(
@@ -79,7 +78,6 @@ class ChatbotTopicScreen extends StatelessWidget {
           ),
           centerTitle: false,
         ),
-        // -----------------------------------------------------------
         body: SafeArea(
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -91,7 +89,6 @@ class ChatbotTopicScreen extends StatelessWidget {
               ),
               const SizedBox(height: 28),
 
-              // BOT GREETING
               _buildBotIntroBubble(
                 'Xin chào! Tôi sẽ giúp bạn luyện giao tiếp tiếng Anh cùng AI theo ngữ cảnh hiệu quả 🚀',
               ),
@@ -101,7 +98,6 @@ class ChatbotTopicScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
 
-              // TOPIC GRID
               Text(
                 "Chọn chủ đề",
                 style: DesignTokens.subheadingStyle.copyWith(
@@ -138,7 +134,6 @@ class ChatbotTopicScreen extends StatelessWidget {
     );
   }
 
-  // Các hàm _buildTopicCard và _buildBotIntroBubble giữ nguyên như cũ
   Widget _buildTopicCard(
     BuildContext context, {
     required String topic,

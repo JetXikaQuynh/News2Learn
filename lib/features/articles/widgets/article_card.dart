@@ -72,7 +72,6 @@ class ArticleCard extends StatelessWidget {
                   ),
           ),
           const SizedBox(width: 14),
-          // 📝 DETAILS
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -102,7 +101,6 @@ class ArticleCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    // BOOKMARK ICON
                     StreamBuilder(
                       stream: bookmarkService.box.watch(),
                       builder: (context, snapshot) {
@@ -128,7 +126,6 @@ class ArticleCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 6),
-                // TITLE
                 Text(
                   article.title,
                   maxLines: 2,
@@ -141,7 +138,6 @@ class ArticleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // SNIPPET / DESCRIPTION
                 Text(
                   article.description,
                   maxLines: 1,
@@ -152,7 +148,6 @@ class ArticleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // DATE
                 Row(
                   children: [
                     const Icon(
@@ -195,7 +190,6 @@ class ArticleCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // IMAGE + OVERLAYS
           Stack(
             children: [
               ClipRRect(
@@ -271,7 +265,6 @@ class ArticleCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
                 Text(
                   article.title,
                   maxLines: 2,
@@ -284,7 +277,6 @@ class ArticleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 8),
-                // Description
                 Text(
                   article.description,
                   maxLines: 2,
@@ -296,7 +288,6 @@ class ArticleCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 14),
-                // Footer (Date & Bookmark)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

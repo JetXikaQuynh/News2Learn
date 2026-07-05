@@ -29,7 +29,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     super.dispose();
   }
 
-  // Hàm xử lý đổi mật khẩu qua Firebase Auth
   Future<void> _changePassword() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -39,14 +38,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null || user.email == null) return;
 
-      // 1. Xác thực lại người dùng (Re-authenticate) trước khi cho đổi mật khẩu bảo mật
       final cred = EmailAuthProvider.credential(
         email: user.email!,
         password: _currentPasswordController.text.trim(),
       );
       await user.reauthenticateWithCredential(cred);
 
-      // 2. Tiến hành cập nhật mật khẩu mới
       await user.updatePassword(_newPasswordController.text.trim());
 
       if (mounted) {
@@ -58,10 +55,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             backgroundColor: const Color(0xFF10B981),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
-        Navigator.pop(context); // Quay lại trang trước
+        Navigator.pop(context);
       }
     } on FirebaseAuthException catch (e) {
       String errorMsg = "Đã xảy ra lỗi. Vui lòng thử lại!";
@@ -80,7 +79,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -133,7 +134,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Sleek Shield Graphic Header
                   Center(
                     child: Container(
                       margin: const EdgeInsets.only(top: 10, bottom: 30),
@@ -148,8 +148,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                       ),
                       child: ShaderMask(
-                        shaderCallback: (bounds) =>
-                            DesignTokens.primaryAccentGradient.createShader(bounds),
+                        shaderCallback: (bounds) => DesignTokens
+                            .primaryAccentGradient
+                            .createShader(bounds),
                         child: const Icon(
                           Icons.lock_reset_rounded,
                           size: 64,
@@ -159,7 +160,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     ),
                   ),
 
-                  // Fields Card Container
                   Container(
                     padding: const EdgeInsets.all(24.0),
                     decoration: BoxDecoration(
@@ -174,20 +174,19 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Trường nhập mật khẩu hiện tại
                         _buildPasswordField(
                           label: "Mật khẩu hiện tại *",
                           controller: _currentPasswordController,
                           obscureText: _obscureCurrent,
-                          onToggleVisibility: () =>
-                              setState(() => _obscureCurrent = !_obscureCurrent),
+                          onToggleVisibility: () => setState(
+                            () => _obscureCurrent = !_obscureCurrent,
+                          ),
                           validator: (val) => val == null || val.isEmpty
                               ? "Vui lòng nhập mật khẩu hiện tại"
                               : null,
                         ),
                         const SizedBox(height: 20),
 
-                        // 2. Trường nhập mật khẩu mới
                         _buildPasswordField(
                           label: "Mật khẩu mới *",
                           controller: _newPasswordController,
@@ -206,13 +205,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // 3. Trường xác nhận mật khẩu mới
                         _buildPasswordField(
                           label: "Xác nhận mật khẩu mới *",
                           controller: _confirmPasswordController,
                           obscureText: _obscureConfirm,
-                          onToggleVisibility: () =>
-                              setState(() => _obscureConfirm = !_obscureConfirm),
+                          onToggleVisibility: () => setState(
+                            () => _obscureConfirm = !_obscureConfirm,
+                          ),
                           validator: (val) {
                             if (val == null || val.isEmpty) {
                               return "Vui lòng xác nhận mật khẩu mới";
@@ -229,7 +228,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
                   const SizedBox(height: 32),
 
-                  // Action Button Container
                   Container(
                     width: double.infinity,
                     height: 54,
@@ -259,8 +257,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                           : Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.check_circle_outline,
-                                    color: Colors.white, size: 20),
+                                const Icon(
+                                  Icons.check_circle_outline,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
                                 const SizedBox(width: 8),
                                 Text(
                                   "LƯU MẬT KHẨU",
@@ -284,7 +285,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     );
   }
 
-  // Hàm helper xây dựng các ô nhập mật khẩu đẹp mắt có icon ẩn/hiện
   Widget _buildPasswordField({
     required String label,
     required TextEditingController controller,
@@ -320,7 +320,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             suffixIcon: IconButton(
               icon: Icon(
-                obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                obscureText
+                    ? Icons.visibility_off_rounded
+                    : Icons.visibility_rounded,
                 color: const Color(0xFF94A3B8),
                 size: 20,
               ),
@@ -334,15 +336,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             filled: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFCBD5E1),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(
-                color: Color(0xFFE2E8F0),
-              ),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -357,7 +355,10 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFFEF4444),
+                width: 1.5,
+              ),
             ),
             errorStyle: GoogleFonts.inter(
               fontSize: 12,

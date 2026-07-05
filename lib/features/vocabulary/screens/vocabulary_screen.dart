@@ -26,7 +26,6 @@ class VocabularyScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER
                 Text(
                   "Từ vựng của tôi",
                   style: DesignTokens.headingStyle.copyWith(
@@ -75,7 +74,6 @@ class VocabularyScreen extends StatelessWidget {
 
                 const SizedBox(height: 20),
 
-                // WORD LIST
                 Expanded(
                   child: StreamBuilder(
                     stream: box.watch(),
@@ -137,7 +135,6 @@ class VocabularyScreen extends StatelessWidget {
     AudioPlayer player,
     Box<VocabModel> box,
   ) {
-    // Pick a subtle accent color per item
     final List<Color> accentColors = [
       const Color(0xFF3B82F6),
       const Color(0xFF8B5CF6),
@@ -173,7 +170,6 @@ class VocabularyScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Word + POS + Audio
                   Row(
                     children: [
                       Text(
@@ -247,7 +243,6 @@ class VocabularyScreen extends StatelessWidget {
               ),
             ),
 
-            // DELETE
             GestureDetector(
               onTap: () {
                 box.deleteAt(index);

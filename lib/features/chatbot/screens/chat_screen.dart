@@ -7,6 +7,7 @@ import 'package:record/record.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 import 'dart:io' as io;
+import 'package:path_provider/path_provider.dart';
 
 class ChatScreen extends StatefulWidget {
   final String topic;
@@ -29,7 +30,6 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _isRecording = false;
   bool _isTranscribing = false;
 
-  //- bắt đầu thu âm từ micro
   Future<void> _startVoiceInput() async {
     try {
       final hasPermission = await _audioRecorder.hasPermission();
@@ -44,14 +44,21 @@ class _ChatScreenState extends State<ChatScreen> {
         _isRecording = true;
       });
 
-      final config = const RecordConfig(
-        encoder: AudioEncoder
-            .aacLc, //- sử dụng aac cho nhẹ và tương thích đa nền tảng
-        sampleRate: 16000,
+      final encoder = kIsWeb ? AudioEncoder.aacLc : AudioEncoder.wav;
+      final sampleRate = kIsWeb ? 44100 : 16000;
+      final config = RecordConfig(
+        encoder: encoder,
+        sampleRate: sampleRate,
         numChannels: 1,
       );
 
-      await _audioRecorder.start(config, path: '');
+      String recordPath = '';
+      if (!kIsWeb) {
+        final tempDir = await getTemporaryDirectory();
+        recordPath = '${tempDir.path}/audio_record.wav';
+      }
+
+      await _audioRecorder.start(config, path: recordPath);
     } catch (e) {
       debugPrint("Lỗi khởi động ghi âm: $e");
       setState(() {
@@ -60,7 +67,6 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  //- dừng thu âm và nhận dạng giọng nói sang tiếng anh
   Future<void> _stopVoiceInput() async {
     try {
       final path = await _audioRecorder.stop();
@@ -78,19 +84,19 @@ class _ChatScreenState extends State<ChatScreen> {
 
       Uint8List audioBytes;
       if (kIsWeb) {
-        //- đọc bytes của blob file trên web
         final response = await http.get(Uri.parse(path));
         audioBytes = response.bodyBytes;
       } else {
-        //- đọc file trên mobile
         final file = io.File(path);
         audioBytes = await file.readAsBytes();
+        debugPrint("[DEBUG_MIC] Path: $path, Size: ${audioBytes.length} bytes");
       }
 
       //- gửi lên gemini thực hiện transcribe & translate sang tiếng anh
+      final mimeType = kIsWeb ? 'audio/m4a' : 'audio/wav';
       final text = await _aiService.transcribeAndTranslateAudio(
         audioBytes,
-        'audio/aac',
+        mimeType,
       );
 
       if (text.isNotEmpty) {
@@ -332,7 +338,6 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
 
-            // INPUT BAR
             Container(
               margin: const EdgeInsets.all(12),
               decoration: BoxDecoration(

@@ -13,7 +13,6 @@ class UserInfoScreen extends StatefulWidget {
 class _UserInfoScreenState extends State<UserInfoScreen> {
   final _auth = FirebaseAuth.instance;
 
-  // Các Controller quản lý nhập liệu
   late TextEditingController _nameController;
   late TextEditingController _emailController;
 
@@ -22,7 +21,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
   @override
   void initState() {
     super.initState();
-    // Lấy dữ liệu hiện tại từ Firebase Auth gắn vào ô nhập
     _nameController = TextEditingController(
       text: _auth.currentUser?.displayName ?? "Phuong Quynh",
     );
@@ -93,7 +91,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
           ),
           backgroundColor: const Color(0xFFEF4444),
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       );
       return;
@@ -102,7 +102,6 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
     try {
       final user = _auth.currentUser;
       if (user != null) {
-        // Cập nhật tên hiển thị
         await user.updateDisplayName(_nameController.text.trim());
 
         if (mounted) {
@@ -114,11 +113,13 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
               ),
               backgroundColor: const Color(0xFF10B981),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           );
           setState(() {
-            _isEditing = false; // Quay lại chế độ xem thông tin
+            _isEditing = false;
           });
         }
       }
@@ -132,7 +133,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
             ),
             backgroundColor: const Color(0xFFEF4444),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
       }
@@ -204,7 +207,7 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                             backgroundImage: _auth.currentUser?.photoURL != null
                                 ? NetworkImage(_auth.currentUser!.photoURL!)
                                 : const AssetImage("assets/LOGO1.png")
-                                    as ImageProvider,
+                                      as ImageProvider,
                           ),
                         ),
                       ),
@@ -341,7 +344,9 @@ class _UserInfoScreenState extends State<UserInfoScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(
-                          _isEditing ? Icons.check_circle_outline : Icons.edit_note_rounded,
+                          _isEditing
+                              ? Icons.check_circle_outline
+                              : Icons.edit_note_rounded,
                           color: Colors.white,
                           size: 20,
                         ),

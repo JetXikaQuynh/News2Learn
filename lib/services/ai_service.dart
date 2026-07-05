@@ -12,7 +12,6 @@ class AIService {
     apiKey: apiKey,
   );
 
-  //- chuyển giọng nói thành văn bản tiếng anh (dịch nếu nói tiếng việt)
   Future<String> transcribeAndTranslateAudio(
     Uint8List audioBytes,
     String mimeType,
@@ -24,7 +23,7 @@ class AIService {
           TextPart(
             "Listen to this audio. "
             "If the audio is in English, transcribe it precisely into English text. "
-            "If the audio is in Vietnamese, translate it naturally into English. "
+            "If the audio is not in English, translate it naturally into English. "
             "Only output the final English transcription/translation. Do not include any explanations, markers, or notes. If you cannot hear anything, return an empty string.",
           ),
         ]),
@@ -57,7 +56,9 @@ class AIService {
       final jsonStart = rawText.indexOf('{');
       final jsonEnd = rawText.lastIndexOf('}');
 
+      // Nếu tìm thấy JSON, giải mã và trả về dữ liệu
       if (jsonStart != -1 && jsonEnd != -1) {
+        // -1 là giá trị trả về khi không tìm thấy ký tự trong chuỗi
         final jsonString = rawText.substring(jsonStart, jsonEnd + 1);
 
         final Map<String, dynamic> data = jsonDecode(jsonString);

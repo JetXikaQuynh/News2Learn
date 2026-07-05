@@ -62,18 +62,21 @@ class QuizBody extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // PROGRESS ROW
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Câu ${currentQuestion + 1}/$totalQuestions",
                     style: DesignTokens.subheadingStyle.copyWith(
-                        color: const Color(0xFF334155), fontSize: 16),
+                      color: const Color(0xFF334155),
+                      fontSize: 16,
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                      horizontal: 14,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       gradient: DesignTokens.primaryAccentGradient,
                       borderRadius: BorderRadius.circular(20),
@@ -82,8 +85,11 @@ class QuizBody extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star_rounded,
-                            color: Colors.white, size: 16),
+                        const Icon(
+                          Icons.star_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           "$score điểm",
@@ -100,7 +106,6 @@ class QuizBody extends StatelessWidget {
               ),
               const SizedBox(height: 10),
 
-              // PROGRESS BAR
               Container(
                 height: 8,
                 decoration: BoxDecoration(
@@ -114,13 +119,13 @@ class QuizBody extends StatelessWidget {
                     value: (currentQuestion + 1) / totalQuestions,
                     backgroundColor: Colors.transparent,
                     valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF8B5CF6)),
+                      Color(0xFF8B5CF6),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 28),
 
-              // QUESTION CARD
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(24),
@@ -149,11 +154,10 @@ class QuizBody extends StatelessWidget {
                           style: DesignTokens.headingStyle.copyWith(
                             fontSize: 36,
                             foreground: Paint()
-                              ..shader =
-                                  DesignTokens.primaryAccentGradient
-                                      .createShader(
-                                const Rect.fromLTWH(0, 0, 200, 50),
-                              ),
+                              ..shader = DesignTokens.primaryAccentGradient
+                                  .createShader(
+                                    const Rect.fromLTWH(0, 0, 200, 50),
+                                  ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -162,7 +166,8 @@ class QuizBody extends StatelessWidget {
                           child: Text(
                             vocab.phonetic,
                             style: DesignTokens.bodyStyle.copyWith(
-                                color: Colors.grey.shade400),
+                              color: Colors.grey.shade400,
+                            ),
                           ),
                         ),
                       ],
@@ -172,7 +177,6 @@ class QuizBody extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // ANSWER OPTIONS
               ...List.generate(options.length, (index) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -195,7 +199,7 @@ class QuizBody extends StatelessWidget {
                                   color: Colors.green.withValues(alpha: 0.2),
                                   blurRadius: 15,
                                   offset: const Offset(0, 6),
-                                )
+                                ),
                               ]
                             : DesignTokens.softShadow,
                       ),
@@ -238,8 +242,11 @@ class QuizBody extends StatelessWidget {
                                 color: Colors.green.shade400,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.check,
-                                  color: Colors.white, size: 16),
+                              child: const Icon(
+                                Icons.check,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                           if (answered &&
                               selectedIndex == index &&
@@ -251,8 +258,11 @@ class QuizBody extends StatelessWidget {
                                 color: Colors.red.shade400,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.close,
-                                  color: Colors.white, size: 16),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 16,
+                              ),
                             ),
                         ],
                       ),
@@ -263,7 +273,6 @@ class QuizBody extends StatelessWidget {
 
               const SizedBox(height: 8),
 
-              // FEEDBACK
               if (answered && selectedIndex == correctIndex)
                 Container(
                   padding: const EdgeInsets.all(16),

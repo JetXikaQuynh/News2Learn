@@ -29,8 +29,8 @@ class CustomBottomNavBar extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 4.0),
           child: BottomNavigationBar(
             currentIndex: currentIndex,
-            selectedItemColor: const Color(0xFF6D28D9), // Vibrant violet-purple
-            unselectedItemColor: const Color(0xFF94A3B8), // Cool grey slate
+            selectedItemColor: const Color(0xFF6D28D9),
+            unselectedItemColor: const Color(0xFF94A3B8),
             backgroundColor: Colors.white,
             elevation: 0,
             onTap: onTap,

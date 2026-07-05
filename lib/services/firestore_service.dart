@@ -156,7 +156,6 @@ class FirestoreService {
     final vocabBox = HiveService.instance.vocabBox;
     final progressBox = HiveService.instance.userVocabBox;
 
-    // Xóa cache cũ
     await vocabBox.clear();
     await progressBox.clear();
 

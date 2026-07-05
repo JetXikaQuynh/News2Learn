@@ -35,7 +35,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: DesignTokens.softShadow, //- bóng đổ nhẹ nhàng tạo chiều sâu
+        boxShadow: DesignTokens.softShadow,
       ),
       child: TextField(
         controller: widget.controller,
@@ -47,16 +47,15 @@ class _AuthTextFieldState extends State<AuthTextField> {
         decoration: InputDecoration(
           hintText: widget.hint,
           hintStyle: DesignTokens.bodyStyle.copyWith(
-            color: const Color(0xFF94A3B8), //- màu xám nhẹ Slate 400
+            color: const Color(0xFF94A3B8),
             fontSize: 15,
           ),
           prefixIcon: Icon(
             widget.icon,
             size: 22,
-            color: const Color(0xFF64748B), //- màu icon Slate 500
+            color: const Color(0xFF64748B),
           ),
 
-          //- nút bật tắt ẩn hiện mật khẩu
           suffixIcon: widget.obscure
               ? IconButton(
                   icon: Icon(
@@ -89,10 +88,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFF8B5CF6),
-              width: 1.5,
-            ), //- viền màu tím khi focus gõ chữ
+            borderSide: const BorderSide(color: Color(0xFF8B5CF6), width: 1.5),
           ),
         ),
       ),

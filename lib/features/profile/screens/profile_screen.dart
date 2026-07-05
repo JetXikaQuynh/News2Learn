@@ -3,13 +3,63 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/theme/design_tokens.dart';
+import '../../../services/hive_service.dart';
 import '../../auth/screens/login_screen.dart';
 import 'user_info_screen.dart';
 import 'statistics_screen.dart';
 import 'change_password_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  int _totalVocab = 0;
+  int _learnedVocab = 0;
+  int _totalQuizzes = 0;
+  String _avgPassRate = "0%";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  void _loadStats() {
+    try {
+      final hive = HiveService.instance;
+
+      // Từ vựng
+      _totalVocab = hive.vocabBox.length;
+      _learnedVocab = hive.userVocabBox.values.where((v) => v.isLearned).length;
+
+      // Quiz
+      final quizResults = hive.quizResultBox.values.toList();
+      _totalQuizzes = quizResults.length;
+
+      if (quizResults.isNotEmpty) {
+        final totalPercent = quizResults.fold<double>(
+          0,
+          (sum, r) =>
+              sum +
+              (r.totalQuestions > 0
+                  ? r.correctCount / r.totalQuestions * 100
+                  : 0),
+        );
+        final avg = totalPercent / quizResults.length;
+        _avgPassRate = "${avg.round()}%";
+      } else {
+        _avgPassRate = "—";
+      }
+    } catch (_) {
+      // Boxes chưa mở (chưa đăng nhập) → để giá trị mặc định 0
+    }
+
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: CircleAvatar(
-              backgroundColor: Colors.white.withOpacity(0.9),
+              backgroundColor: Colors.white.withValues(alpha: 0.9),
               child: IconButton(
                 icon: const Icon(
                   Icons.arrow_back_rounded,
@@ -60,75 +110,72 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               children: [
                 // Profile Card Container
-                Container(
-                  child: Column(
-                    children: [
-                      // Glowing Avatar Border
-                      Container(
-                        padding: const EdgeInsets.all(4),
+                Column(
+                  children: [
+                    // Glowing Avatar Border
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: DesignTokens.primaryAccentGradient,
+                      ),
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: DesignTokens.primaryAccentGradient,
+                          color: Colors.white,
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                          ),
-                          child: CircleAvatar(
-                            radius: 46,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: user?.photoURL != null
-                                ? NetworkImage(user!.photoURL!)
-                                : const AssetImage("assets/LOGO1.png")
-                                      as ImageProvider,
-                          ),
+                        child: CircleAvatar(
+                          radius: 46,
+                          backgroundColor: Colors.grey[200],
+                          backgroundImage: user?.photoURL != null
+                              ? NetworkImage(user!.photoURL!)
+                              : const AssetImage("assets/LOGO1.png")
+                                    as ImageProvider,
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        user?.displayName ?? "Phuong Quynh",
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      user?.displayName ?? "Phuong Quynh",
+                      style: GoogleFonts.inter(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      user?.email ?? "",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: const Color(0xFF64748B),
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        joinDate,
                         style: GoogleFonts.inter(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF1E293B),
+                          color: const Color(0xFF3B82F6),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        user?.email ?? "",
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: const Color(0xFF64748B),
-                          fontWeight: FontWeight.w400,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          joinDate,
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF3B82F6),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 12),
 
-                // Statistics Dashboard Card
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16.0),
                   padding: const EdgeInsets.symmetric(
@@ -136,11 +183,11 @@ class ProfileScreen extends StatelessWidget {
                     horizontal: 16.0,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: DesignTokens.softShadow,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       width: 1.5,
                     ),
                   ),
@@ -149,7 +196,9 @@ class ProfileScreen extends StatelessWidget {
                     children: [
                       _buildStatItem(
                         icon: Icons.menu_book_rounded,
-                        value: "9/30",
+                        value: _totalVocab > 0
+                            ? "$_learnedVocab/$_totalVocab"
+                            : "—",
                         label: "Từ vựng",
                         color: const Color(0xFF3B82F6),
                       ),
@@ -160,7 +209,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       _buildStatItem(
                         icon: Icons.quiz_rounded,
-                        value: "7",
+                        value: "$_totalQuizzes",
                         label: "Bài Quiz",
                         color: const Color(0xFF8B5CF6),
                       ),
@@ -171,7 +220,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       _buildStatItem(
                         icon: Icons.stars_rounded,
-                        value: "85%",
+                        value: _avgPassRate,
                         label: "Tỷ lệ đạt",
                         color: const Color(0xFF10B981),
                       ),
@@ -179,15 +228,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Menu Items Container
                 Container(
                   margin: const EdgeInsets.all(16.0),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: DesignTokens.softShadow,
                     border: Border.all(
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                       width: 1.5,
                     ),
                   ),
@@ -253,7 +301,6 @@ class ProfileScreen extends StatelessWidget {
                   ),
                 ),
 
-                // Logout Button
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
                   child: Container(
@@ -268,7 +315,7 @@ class ProfileScreen extends StatelessWidget {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFEF4444).withOpacity(0.3),
+                          color: const Color(0xFFEF4444).withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 6),
                         ),
@@ -336,7 +383,7 @@ class ProfileScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 24),
@@ -376,7 +423,7 @@ class ProfileScreen extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
+          color: iconColor.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(icon, color: iconColor, size: 20),

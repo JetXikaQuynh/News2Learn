@@ -39,7 +39,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     setState(() {
       fullContent = content;
       isLoading = false;
-      _splitSentences(content);
+      _splitSentences(content.isNotEmpty ? content : widget.article.description);
     });
   }
 
@@ -84,7 +84,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // 🔥 IMAGE + BACK
                     Stack(
                       children: [
                         widget.article.imageUrl.isNotEmpty
@@ -113,13 +112,12 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                       ],
                     ),
 
-                    // 📄 CONTENT
+                    // CONTENT
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 📰 TITLE
                           Text(
                             widget.article.title,
                             style: const TextStyle(
@@ -130,7 +128,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
                           const SizedBox(height: 8),
 
-                          // 🕒 DATE
                           Text(
                             DateFormat(
                               'MMM dd, yyyy',
@@ -140,7 +137,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
                           const SizedBox(height: 16),
 
-                          // 💡 TIP
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
@@ -160,12 +156,10 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
                           const SizedBox(height: 16),
 
-                          // 📖 CONTENT
                           _buildContent(context, displayText),
 
                           const SizedBox(height: 20),
 
-                          // 🤖 BUTTON
                           Center(
                             child: ElevatedButton(
                               onPressed: _isTranslatingArticle
@@ -216,14 +210,61 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     );
   }
 
-  // 🔥 CONTENT + HIGHLIGHT WORD
+  //CONTENT + HIGHLIGHT WORD
   Widget _buildContent(BuildContext context, String text) {
     final vocabBox = HiveService.instance.vocabBox;
     final savedWords = vocabBox.values.map((e) => e.word.toLowerCase()).toSet();
     final words = text.split(' ');
 
+    final wordSentences = <String>[];
+    if (!_isArticleTranslated) {
+      final sentenceRanges = <_SentenceRange>[];
+      int currentSearchPos = 0;
+      for (final sentence in _sentences) {
+        final idx = text.indexOf(sentence, currentSearchPos);
+        if (idx != -1) {
+          sentenceRanges.add(_SentenceRange(
+            sentence,
+            idx,
+            idx + sentence.length,
+          ));
+          currentSearchPos = idx + sentence.length;
+        }
+      }
+
+      int currentWordPos = 0;
+      for (final word in words) {
+        if (word.isEmpty) {
+          wordSentences.add("");
+          continue;
+        }
+        final idx = text.indexOf(word, currentWordPos);
+        if (idx != -1) {
+          final start = idx;
+          final end = idx + word.length;
+          currentWordPos = end;
+
+          String matchedSentence = "";
+          for (final range in sentenceRanges) {
+            if (range.start <= start && end <= range.end) {
+              matchedSentence = range.sentence;
+              break;
+            }
+          }
+          if (matchedSentence.isEmpty) {
+            matchedSentence = _findSentenceContainingWord(word);
+          }
+          wordSentences.add(matchedSentence);
+        } else {
+          wordSentences.add(_findSentenceContainingWord(word));
+        }
+      }
+    }
+
     return Wrap(
-      children: words.map((word) {
+      children: words.asMap().entries.map((entry) {
+        final index = entry.key;
+        final word = entry.value;
         final cleanWord = word.replaceAll(RegExp(r'[^\w]'), '').toLowerCase();
         final isSaved = savedWords.contains(cleanWord);
 
@@ -236,7 +277,9 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
           onDoubleTap: _isArticleTranslated
               ? null
               : () {
-                  final sentence = _findSentenceContainingWord(word);
+                  final sentence = wordSentences.length > index
+                      ? wordSentences[index]
+                      : _findSentenceContainingWord(word);
                   _showSentenceTranslation(context, sentence);
                 },
           child: Container(
@@ -316,7 +359,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     BuildContext context,
     String sentence,
   ) async {
-    // show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -533,11 +575,10 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     );
   }
 
-  // 📚 POPUP TỪ VỰNG
+  // POPUP TỪ VỰNG
   void _showVocabPopup(BuildContext context, String word) async {
     final box = HiveService.instance.vocabBox;
 
-    // Popup loading
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -547,7 +588,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
 
     final data = await DictionaryService().fetchWord(word);
     if (!context.mounted) return;
-    Navigator.pop(context); // Đóng loading
+    Navigator.pop(context);
 
     if (data == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -563,7 +604,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Để thấy bo góc của Container
+      backgroundColor: Colors.transparent,
       builder: (_) {
         return Container(
           margin: const EdgeInsets.all(40),
@@ -574,7 +615,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // --- HEADER MÀU CAM ---
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
@@ -680,7 +720,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                               if (keyToDelete != null) {
                                 await box.delete(keyToDelete);
 
-                                // Thông báo cho người dùng
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
@@ -690,9 +729,7 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                                       duration: const Duration(seconds: 2),
                                     ),
                                   );
-                                  Navigator.pop(
-                                    context,
-                                  ); // Đóng popup sau khi xóa
+                                  Navigator.pop(context);
                                 }
                               }
                             } else {
@@ -718,7 +755,6 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
                                 Navigator.pop(context);
                               }
                             }
-                            // Cập nhật lại giao diện màn hình chính để mất/hiện highlight
                             setState(() {});
                           },
                           icon: Icon(
@@ -754,4 +790,11 @@ class _ArticleDetailScreenState extends State<ArticleDetailScreen> {
       },
     );
   }
+}
+
+class _SentenceRange {
+  final String sentence;
+  final int start;
+  final int end;
+  _SentenceRange(this.sentence, this.start, this.end);
 }

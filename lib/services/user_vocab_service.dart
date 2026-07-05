@@ -5,7 +5,6 @@ import 'sync_service.dart';
 class UserVocabService {
   get box => HiveService.instance.userVocabBox;
 
-  /// Lấy progress của một từ
   UserVocabModel? getProgress(String vocabId) {
     try {
       return box.values.firstWhere((e) => e.vocabId == vocabId);
@@ -14,7 +13,6 @@ class UserVocabService {
     }
   }
 
-  /// Đánh dấu từ đã học
   Future<void> markAsLearned(String vocabId) async {
     final progress = getProgress(vocabId);
     if (progress != null) {
@@ -24,7 +22,6 @@ class UserVocabService {
     }
   }
 
-  /// Cập nhật lần review cuối
   Future<void> updateReviewDate(String vocabId) async {
     final progress = getProgress(vocabId);
     if (progress != null) {
@@ -35,7 +32,6 @@ class UserVocabService {
     }
   }
 
-  /// Lên lịch review tiếp theo (Spaced Repetition)
   Future<void> scheduleNextReview(String vocabId, int daysLater) async {
     final progress = getProgress(vocabId);
     if (progress != null) {
@@ -45,7 +41,6 @@ class UserVocabService {
     }
   }
 
-  /// Lấy danh sách từ cần review
   List<UserVocabModel> getWordsNeedReview() {
     final now = DateTime.now();
     return box.values
@@ -58,7 +53,6 @@ class UserVocabService {
         .toList();
   }
 
-  /// Lấy thống kê học tập
   Map<String, dynamic> getStatistics() {
     final allVocabs = box.values.toList();
     return {
